@@ -1,0 +1,44 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "A songwriting project",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "lastModified": { "type": "number" },
+        "lyrics": { "type": "string" },
+        "suggestion": { "type": "string" },
+        "feedback": { "type": "string" },
+        "companion": { "type": "object" },
+        "messages": { "type": "array" },
+        "activeTab": { "type": "string" },
+        "audioClips": { "type": "array" },
+        "uid": { "type": "string" }
+      },
+      "required": ["title", "lastModified", "uid"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user profile",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/users/{userId}/projects/{projectId}": {
+      "schema": "Project",
+      "description": "User's songwriting projects"
+    }
+  }
+}

@@ -1,0 +1,102 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required)
+    //   - displayName: string (optional)
+    //   - photoURL: string (optional)
+    //
+    // Collection: users/{userId}/projects
+    // Document ID: {projectId}
+    // Fields:
+    //   - title: string (required, max 100 chars)
+    //   - lastModified: number (required)
+    //   - lyrics: string (optional, max 10000 chars)
+    //   - suggestion: string (optional, max 10000 chars)
+    //   - feedback: string (optional, max 1000 chars)
+    //   - companion: map (required)
+    //   - messages: list (required, max 100 items)
+    //   - activeTab: string (required, 'editor' | 'chat' | 'recordings')
+    //   - audioClips: list (optional, max 20 items)
+    //   - uid: string (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "mrtwreckshtown@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasOnlyAllowedFields(['uid', 'email', 'displayName', 'photoURL', 'role']) &&
+             data.uid is string && data.uid.size() > 0 &&
+             data.email is string && isValidEmail(data.email) &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() < 100)) &&
+             (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() < 500)) &&
+             (!('role' in data) || (data.role in ['admin', 'user']));
+    }
+
+    function isValidProject(data) {
+      return hasOnlyAllowedFields(['title', 'lastModified', 'lyrics', 'suggestion', 'feedback', 'companion', 'messages', 'activeTab', 'audioClips', 'uid']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 100 &&
+             data.lastModified is number &&
+             (!('lyrics' in data) || (data.lyrics is string && data.lyrics.size() <= 10000)) &&
+             (!('suggestion' in data) || (data.suggestion is string && data.suggestion.size() <= 10000)) &&
+             (!('feedback' in data) || (data.feedback is string && data.feedback.size() <= 1000)) &&
+             data.companion is map &&
+             data.messages is list && data.messages.size() <= 100 &&
+             data.activeTab in ['editor', 'chat', 'recordings'] &&
+             (!('audioClips' in data) || (data.audioClips is list && data.audioClips.size() <= 20)) &&
+             data.uid is string && data.uid == request.auth.uid;
+    }
+
+    // ===============================================================
+    // Match Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && (isOwner(userId) && (!('role' in request.resource.data) || request.resource.data.role == 'user') || isAdmin());
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && (isOwner(userId) && (request.resource.data.role == resource.data.role) || isAdmin());
+      
+      match /projects/{projectId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && isValidProject(request.resource.data);
+        allow update: if isOwner(userId) && isValidProject(request.resource.data);
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+    }
+  }
+}

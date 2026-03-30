@@ -1,0 +1,7 @@
+{
+  "name": "AI Songwriting Partner",
+  "description": "An AI-powered songwriting assistant that helps you write lyrics, suggests melodies, and analyzes your song structure. Record your ideas or type them in to get instant creative feedback.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

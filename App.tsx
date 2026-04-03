@@ -5,8 +5,10 @@ import { auth, db } from './firebase';
 import Landing from './components/Landing';
 import Workspace from './components/Workspace';
 import ProjectList from './components/ProjectList';
+import Pricing from './components/Pricing';
+import Settings from './components/Settings';
 
-type View = 'landing' | 'projects' | 'workspace';
+type View = 'landing' | 'projects' | 'workspace' | 'pricing' | 'settings';
 
 function App() {
   const [view, setView] = useState<View>('landing');
@@ -57,6 +59,14 @@ function App() {
     setView('projects');
   }, []);
 
+  const handleGoToPricing = useCallback(() => {
+    setView('pricing');
+  }, []);
+
+  const handleGoToSettings = useCallback(() => {
+    setView('settings');
+  }, []);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#1d2951]">
@@ -68,7 +78,11 @@ function App() {
   return (
     <div className="min-h-screen bg-[#1d2951]">
       {view === 'landing' && !user && <Landing onStart={handleStart} />}
-      {view === 'projects' && user && <ProjectList onSelectProject={handleSelectProject} />}
+      {view === 'projects' && user && (
+        <ProjectList onSelectProject={handleSelectProject} onGoToPricing={handleGoToPricing} onGoToSettings={handleGoToSettings} />
+      )}
+      {view === 'pricing' && user && <Pricing onBack={handleBackToProjects} />}
+      {view === 'settings' && user && <Settings onBack={handleBackToProjects} onGoToPricing={handleGoToPricing} />}
       {view === 'workspace' && currentProjectId && user && (
         <Workspace projectId={currentProjectId} onBack={handleBackToProjects} />
       )}

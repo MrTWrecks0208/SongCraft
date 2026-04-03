@@ -9,6 +9,9 @@ export enum SuggestionType {
   RHYMES = 'Find Rhymes',
   REVIEW = 'Review Lyrics',
   ORIGINALITY_CHECK = 'Check Originality',
+  STYLE_MIMIC = 'Write Like...',
+  TIKTOK_HOOK = 'TikTok Hook Generator',
+  GENERATE_SONG = 'Generate AI Song',
 }
 
 // FIX: Add ChatMessage type definition. This was missing, causing import errors.

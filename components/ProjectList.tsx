@@ -8,16 +8,20 @@ import { companions } from '../companions';
 import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
 import { MusicNoteIcon } from './icons/MusicNoteIcon';
+import { User as UserIcon, Settings as SettingsIcon, LogOut, ChevronDown, CreditCard } from 'lucide-react';
 
 import { handleFirestoreError, OperationType } from '../services/firestoreUtils';
 
 interface ProjectListProps {
   onSelectProject: (projectId: string) => void;
+  onGoToPricing: () => void;
+  onGoToSettings: () => void;
 }
 
-const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject }) => {
+const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricing, onGoToSettings }) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -131,12 +135,73 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject }) => {
           </h1>
           <p className="text-gray-200">Manage your songs and creative ideas</p>
         </div>
-        <button
-          onClick={handleSignOut}
-          className="px-6 py-2 bg-white/5 border border-white/10 text-gray-300 rounded-full hover:bg-white/10 transition-all text-sm font-medium"
-        >
-          Sign Out
-        </button>
+        
+        <div className="relative">
+          <button
+            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            className="transition-transform hover:scale-105 active:scale-95 focus:outline-none"
+          >
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20 overflow-hidden mr-8 p-2">
+              {auth.currentUser?.photoURL ? (
+                <img src={auth.currentUser.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <UserIcon className="w-5 h-5 text-white" />
+              )}
+            </div>
+          </button>
+
+          <AnimatePresence>
+            {isUserMenuOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-30" 
+                  onClick={() => setIsUserMenuOpen(false)} 
+                />
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute right-0 mt-2 w-56 bg-[#1d2951]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-40 overflow-hidden"
+                >
+                  <div className="p-4 border-bottom border-white/5 bg-white/5">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Account</p>
+                    <p className="text-sm font-medium text-white truncate">{auth.currentUser?.email}</p>
+                  </div>
+                  <div className="p-2">
+                    <button
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        onGoToSettings();
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+                    >
+                      <SettingsIcon className="w-4 h-4" />
+                      Settings
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        onGoToPricing();
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      Pricing
+                    </button>
+                    <div className="h-px bg-white/5 my-2" />
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
+                    </button>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -145,8 +210,9 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject }) => {
           whileHover={{ scale: 1.02, y: -5 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleCreateProject}
-          className="group flex flex-col items-center justify-center p-8 bg-white/10 backdrop-blur-md border-2 border-dashed border-white/10 rounded-3xl hover:bg-white/30 transition-all duration-300 min-h-[240px] shadow-xl"
+          className="group relative flex flex-col items-center justify-center p-8 bg-white/10 border border-white/10 rounded-3xl hover:bg-white/30 transition-colors duration-300 min-h-[240px] shadow-xl overflow-hidden transform-gpu"
         >
+          <div className="absolute inset-0 backdrop-blur-md pointer-events-none -z-10" />
           <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-4 rounded-2xl mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-purple-500/20">
             <PlusIcon className="w-8 h-8 text-white" />
           </div>
@@ -171,8 +237,9 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject }) => {
                 hover: { y: -8 }
               }}
               onClick={() => onSelectProject(project.id)}
-              className="group relative flex flex-col p-8 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/10 hover:border-purple-500/50 hover:bg-white/30 transition-all duration-300 cursor-pointer min-h-[240px] shadow-2xl overflow-hidden"
+              className="group relative flex flex-col p-8 bg-white/10 rounded-3xl border border-white/10 hover:border-white/50 hover:bg-white/50 transition-colors duration-300 cursor-pointer min-h-[240px] shadow-xl overflow-hidden transform-gpu"
             >
+              <div className="absolute inset-0 backdrop-blur-xl pointer-events-none -z-10" />
               {/* Delete Button - Positioned in the corner with improved centering and animation */}
               <motion.button
                 variants={{

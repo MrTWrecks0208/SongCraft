@@ -18,9 +18,41 @@ CRITICAL RULES:
 6. RESPECT the user's original voice, style, and intent.
 7. Use Markdown for clear, professional formatting.`;
 
-function getPrompt(lyrics: string, suggestionType: SuggestionType, feedback?: string): string {
+function getPrompt(lyrics: string, suggestionType: SuggestionType, feedback?: string, style?: string, styleType?: 'artist' | 'genre'): string {
   let prompt = "";
   switch (suggestionType) {
+    case SuggestionType.STYLE_MIMIC:
+      const target = style || (styleType === 'artist' ? 'a popular musician' : 'a specific genre');
+      prompt = `I am writing a song and want help writing it in the style of ${target}.
+      
+Current Lyrics:
+---
+${lyrics}
+---
+
+Task:
+1. Analyze the current lyrics and provide feedback on how they currently compare to ${target}'s typical style, themes, and lyrical structure.
+2. Suggest 2-3 specific improvements or additions to the lyrics that would make them feel more like a song written in the style of ${target}.
+3. Provide tips on how to capture the "essence" of ${target}'s songwriting (e.g., their use of metaphors, rhythmic patterns, or common themes).
+4. DO NOT rewrite the whole song. Focus on incremental changes and stylistic guidance.`;
+      break;
+    case SuggestionType.TIKTOK_HOOK:
+      prompt = `I want to generate a catchy, viral-potential "TikTok Hook" based on my current lyrics.
+      
+Current Lyrics:
+---
+${lyrics}
+---
+
+Task:
+1. Identify the most "hooky" or emotionally resonant part of the current lyrics.
+2. Suggest 2-3 variations of a 15-30 second "TikTok Hook".
+3. For each variation:
+   - Provide the lyrics for the hook.
+   - Suggest a specific "TikTok trend" or visual idea that could go with it (e.g., a transition, a dance, a POV).
+   - Explain why this specific part has viral potential (e.g., "relatable lyrics", "high energy drop", "clever wordplay").
+4. Keep it punchy, memorable, and easy to sing along to.`;
+      break;
     case SuggestionType.NEXT_LINES:
       prompt = `I am writing a song and need help with the next two lines. 
 
@@ -143,10 +175,12 @@ export const getAiSuggestion = async (
   lyrics: string,
   suggestionType: SuggestionType,
   feedback?: string,
-  companionSystemInstruction?: string
+  companionSystemInstruction?: string,
+  style?: string,
+  styleType?: 'artist' | 'genre'
 ): Promise<AiSuggestionResult> => {
   try {
-    const prompt = getPrompt(lyrics, suggestionType, feedback);
+    const prompt = getPrompt(lyrics, suggestionType, feedback, style, styleType);
     const systemInstruction = companionSystemInstruction 
       ? `${BASE_SYSTEM_INSTRUCTION}\n\nAdditional context for your persona:\n${companionSystemInstruction}`
       : BASE_SYSTEM_INSTRUCTION;

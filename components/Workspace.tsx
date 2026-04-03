@@ -1,10 +1,10 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { doc, onSnapshot, updateDoc, getDoc } from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
 import { db, auth } from '../firebase';
 import { SuggestionType, Companion, ChatMessage, Project, AudioClip } from '../types';
 import { getAiSuggestion, getRhymes } from '../services/geminiService';
-import { GoogleGenAI, Chat } from "@google/genai";
+import { GoogleGenAI, Chat, Modality } from "@google/genai";
+import { motion } from 'motion/react';
 import LyricEditor from './LyricEditor';
 import SuggestionControls from './SuggestionControls';
 import SuggestionDisplay from './SuggestionDisplay';
@@ -14,10 +14,10 @@ import RhymeBox from './RhymeBox';
 import AudioRecorder from './AudioRecorder';
 import AudioClipList from './AudioClipList';
 import { companions } from '../companions';
+import { POPULAR_ARTISTS, POPULAR_GENRES } from '../constants';
 import { BackArrowIcon } from './icons/BackArrowIcon';
 import { PencilIcon } from './icons/PencilIcon';
 import { ChatBubbleIcon } from './icons/ChatBubbleIcon';
-import { UsersIcon } from './icons/UsersIcon';
 import { RecordIcon } from './icons/RecordIcon';
 import { MicrophoneIcon } from './icons/MicrophoneIcon';
 
@@ -38,6 +38,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
     const [groundingChunks, setGroundingChunks] = useState<any[]>([]);
     const [feedback, setFeedback] = useState<string>('');
     const [isSuggestionLoading, setIsSuggestionLoading] = useState<boolean>(false);
+    const [isSongGenerating, setIsSongGenerating] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState(false);
     const [suggestionError, setSuggestionError] = useState<string | null>(null);
     const [activeSuggestionType, setActiveSuggestionType] = useState<SuggestionType | null>(null);
@@ -58,6 +59,9 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
     
     // Rhyme finder state
     const [rhymeState, setRhymeState] = useState({ isOpen: false, word: '', rhymes: [], isLoading: false, error: null as string | null });
+    const [musicianModal, setMusicianModal] = useState({ isOpen: false, name: '', customName: '', type: 'artist' as 'artist' | 'genre' });
+    const [selectedMusician, setSelectedMusician] = useState<string>('');
+    const [selectedStyleType, setSelectedStyleType] = useState<'artist' | 'genre'>('artist');
 
     // Load saved data for specific project from Firestore
     useEffect(() => {
@@ -130,10 +134,6 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
         onBack();
     };
 
-    const handleSignOut = () => {
-        signOut(auth);
-    };
-
     // Initialize chat session when companion changes
     useEffect(() => {
         if (!process.env.API_KEY) return;
@@ -166,6 +166,85 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
             setRhymeState(prev => ({...prev, error: e.message, isLoading: false }));
         }
     };
+
+    const handleGenerateSong = async () => {
+        if (!lyrics.trim()) {
+            setSuggestionError('Please enter some lyrics to generate a song.');
+            return;
+        }
+
+        // Check for API key selection for Lyria
+        if (typeof (window as any).aistudio !== 'undefined') {
+            const hasKey = await (window as any).aistudio.hasSelectedApiKey();
+            if (!hasKey) {
+                await (window as any).aistudio.openSelectKey();
+                // Proceed after key selection
+            }
+        }
+
+        setIsSongGenerating(true);
+        setSuggestionError(null);
+        setActiveSuggestionType(SuggestionType.GENERATE_SONG);
+
+        try {
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const prompt = `Generate a 30-second song with melody and music based on these lyrics:
+            
+            ${lyrics}
+            
+            Style: Catchy and modern.`;
+
+            const response = await ai.models.generateContentStream({
+                model: "lyria-3-clip-preview",
+                contents: prompt,
+                config: {
+                    responseModalities: [Modality.AUDIO],
+                }
+            });
+
+            let audioBase64 = "";
+            let mimeType = "audio/wav";
+
+            for await (const chunk of response) {
+                const parts = chunk.candidates?.[0]?.content?.parts;
+                if (!parts) continue;
+                for (const part of parts) {
+                    if (part.inlineData?.data) {
+                        if (!audioBase64 && part.inlineData.mimeType) {
+                            mimeType = part.inlineData.mimeType;
+                        }
+                        audioBase64 += part.inlineData.data;
+                    }
+                }
+            }
+
+            if (audioBase64) {
+                const newClip: AudioClip = {
+                    id: typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : Date.now().toString(),
+                    name: `AI Song - ${projectTitle}`,
+                    timestamp: Date.now(),
+                    audioData: `data:${mimeType};base64,${audioBase64}`,
+                };
+                setAudioClips(prev => [newClip, ...prev]);
+                setSuggestion('AI Song generated successfully! You can find it in the Recordings tab.');
+                setActiveTab('recordings');
+            } else {
+                setSuggestionError('Failed to generate audio. Please try again.');
+            }
+        } catch (error: any) {
+            console.error("Error generating song:", error);
+            if (error.message?.includes("Requested entity was not found")) {
+                setSuggestionError("API Key error. Please re-select your API key.");
+                if (typeof (window as any).aistudio !== 'undefined') {
+                    await (window as any).aistudio.openSelectKey();
+                }
+            } else {
+                setSuggestionError(`Error generating song: ${error.message}`);
+            }
+        } finally {
+            setIsSongGenerating(false);
+        }
+    };
     
     const handleSelectRhyme = (rhyme: string) => {
         setLyrics(prev => {
@@ -177,7 +256,24 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
         });
     };
 
-    const handleSuggestionRequest = useCallback(async (type: SuggestionType, isRefinement: boolean = false) => {
+    const handleSuggestionRequest = useCallback(async (type: SuggestionType, isRefinement: boolean = false, styleName?: string, styleType?: 'artist' | 'genre') => {
+        if (type === SuggestionType.STYLE_MIMIC && !styleName && !isRefinement) {
+            setMusicianModal({ isOpen: true, name: selectedMusician, customName: '', type: selectedStyleType });
+            return;
+        }
+
+        if (type === SuggestionType.GENERATE_SONG) {
+            handleGenerateSong();
+            return;
+        }
+
+        if (styleName) {
+            setSelectedMusician(styleName);
+        }
+        if (styleType) {
+            setSelectedStyleType(styleType);
+        }
+
         setActiveSuggestionType(type);
         if (type === SuggestionType.RHYMES) {
             handleRhymeRequest();
@@ -200,7 +296,9 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
         
         // Use the current feedback only if it's a refinement request
         const currentFeedback = isRefinement ? feedback : '';
-        const result = await getAiSuggestion(lyrics, type, currentFeedback, companion.systemInstruction);
+        const effectiveStyle = styleName || (type === SuggestionType.STYLE_MIMIC ? selectedMusician : undefined);
+        const effectiveStyleType = styleType || (type === SuggestionType.STYLE_MIMIC ? selectedStyleType : undefined);
+        const result = await getAiSuggestion(lyrics, type, currentFeedback, companion.systemInstruction, effectiveStyle, effectiveStyleType);
         
         if (result.text.toLowerCase().includes('error occurred')) {
             setSuggestionError(result.text);
@@ -209,7 +307,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
             setGroundingChunks(result.groundingChunks || []);
         }
         setIsSuggestionLoading(false);
-    }, [lyrics, feedback, companion.systemInstruction]);
+    }, [lyrics, feedback, companion.systemInstruction, selectedMusician, selectedStyleType]);
 
     const handleRegenerate = useCallback(() => {
         if (activeSuggestionType) {
@@ -284,12 +382,12 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
                         />
                         <SuggestionControls 
                             onSuggestionSelect={handleSuggestionRequest} 
-                            isLoading={isSuggestionLoading} 
+                            isLoading={isSuggestionLoading || isSongGenerating} 
                             selectedType={activeSuggestionType}
                         />
                         <SuggestionDisplay 
                             suggestion={suggestion} 
-                            isLoading={isSuggestionLoading} 
+                            isLoading={isSuggestionLoading || isSongGenerating} 
                             error={suggestionError} 
                             feedback={feedback}
                             onFeedbackChange={setFeedback}
@@ -341,6 +439,102 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
                     onSelectRhyme={handleSelectRhyme}
                     onClose={() => setRhymeState(prev => ({...prev, isOpen: false}))}
                 />
+            )}
+            
+            {musicianModal.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-[#1d2951] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl"
+                    >
+                        <h2 className="text-2xl font-bold text-white mb-6">Write like...</h2>
+                        
+                        <div className="flex mb-6">
+                            <button
+                                onClick={() => setMusicianModal(prev => ({ ...prev, type: 'artist', name: '' }))}
+                                className={`flex-1 py-3 font-bold rounded-l-xl transition-all border border-white/10 ${
+                                    musicianModal.type === 'artist' 
+                                        ? 'bg-purple-600 text-white border-purple-500' 
+                                        : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                                }`}
+                            >
+                                Artist
+                            </button>
+                            <button
+                                onClick={() => setMusicianModal(prev => ({ ...prev, type: 'genre', name: '' }))}
+                                className={`flex-1 py-3 font-bold rounded-r-xl transition-all border border-white/10 border-l-0 ${
+                                    musicianModal.type === 'genre' 
+                                        ? 'bg-purple-600 text-white border-purple-500' 
+                                        : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                                }`}
+                            >
+                                Genre
+                            </button>
+                        </div>
+
+                        <div className="relative mb-6">
+                            <select
+                                value={musicianModal.name}
+                                onChange={(e) => setMusicianModal(prev => ({ ...prev, name: e.target.value, customName: '' }))}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none cursor-pointer"
+                            >
+                                <option value="" disabled className="bg-[#1d2951]">Select {musicianModal.type === 'artist' ? 'an Artist' : 'a Genre'}</option>
+                                {(musicianModal.type === 'artist' ? POPULAR_ARTISTS : POPULAR_GENRES).map(item => (
+                                    <option key={item} value={item} className="bg-[#1d2951]">{item}</option>
+                                ))}
+                            </select>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><path d="m6 9 6 6 6-6"/></svg>
+                            </div>
+                        </div>
+
+                        {musicianModal.name === 'Other' && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mb-8"
+                            >
+                                <input
+                                    autoFocus
+                                    type="text"
+                                    value={musicianModal.customName}
+                                    onChange={(e) => setMusicianModal(prev => ({ ...prev, customName: e.target.value }))}
+                                    placeholder={`Enter custom ${musicianModal.type}...`}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && musicianModal.customName.trim()) {
+                                            handleSuggestionRequest(SuggestionType.STYLE_MIMIC, false, musicianModal.customName, musicianModal.type);
+                                            setMusicianModal({ isOpen: false, name: '', customName: '', type: 'artist' });
+                                        }
+                                    }}
+                                />
+                            </motion.div>
+                        )}
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setMusicianModal({ isOpen: false, name: '', customName: '', type: 'artist' })}
+                                className="flex-1 px-4 py-3 bg-white/5 hover:bg-white/10 text-gray-400 font-bold rounded-xl transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const finalName = musicianModal.name === 'Other' ? musicianModal.customName : musicianModal.name;
+                                    if (finalName.trim()) {
+                                        handleSuggestionRequest(SuggestionType.STYLE_MIMIC, false, finalName, musicianModal.type);
+                                        setMusicianModal({ isOpen: false, name: '', customName: '', type: 'artist' });
+                                    }
+                                }}
+                                disabled={musicianModal.name === 'Other' ? !musicianModal.customName.trim() : !musicianModal.name}
+                                className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/20"
+                            >
+                                Get Tips
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
             )}
             
             <header className="flex flex-col gap-4">

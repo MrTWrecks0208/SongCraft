@@ -9,6 +9,7 @@ import { ChordsIcon } from './icons/ChordsIcon';
 import { RhymeIcon } from './icons/RhymeIcon';
 import { ReviewIcon } from './icons/ReviewIcon';
 import { ShieldCheckIcon } from './icons/ShieldCheckIcon';
+import { User as UserIcon, Video as VideoIcon, Music as MusicIcon } from 'lucide-react';
 
 interface SuggestionControlsProps {
   onSuggestionSelect: (type: SuggestionType) => void;
@@ -24,6 +25,9 @@ const suggestionOptions = [
   { type: SuggestionType.RHYMES, icon: <RhymeIcon className="w-5 h-5" /> },
   { type: SuggestionType.REVIEW, icon: <ReviewIcon className="w-5 h-5" /> },
   { type: SuggestionType.ORIGINALITY_CHECK, icon: <ShieldCheckIcon className="w-5 h-5" /> },
+  { type: SuggestionType.STYLE_MIMIC, icon: <UserIcon className="w-5 h-5" /> },
+  { type: SuggestionType.TIKTOK_HOOK, icon: <VideoIcon className="w-5 h-5" /> },
+  { type: SuggestionType.GENERATE_SONG, icon: <MusicIcon className="w-5 h-5" /> },
 ];
 
 const SuggestionButton = ({ type, icon, onClick, disabled, isActive = false }: {

@@ -675,9 +675,9 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
                         <div className="flex mb-6">
                             <button
                                 onClick={() => setMusicianModal(prev => ({ ...prev, type: 'artist', name: '' }))}
-                                className={`flex-1 py-3 font-bold rounded-l-xl transition-all border border-white/10 ${
+                                className={`flex-1 py-3 font-bold rounded-l-xl transition-all border-2 border-white/10 ${
                                     musicianModal.type === 'artist' 
-                                        ? 'bg-purple-600 text-white border-purple-500' 
+                                        ? 'bg-pink-500 text-white' 
                                         : 'bg-white/5 text-gray-400 hover:bg-white/10'
                                 }`}
                             >
@@ -685,9 +685,9 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
                             </button>
                             <button
                                 onClick={() => setMusicianModal(prev => ({ ...prev, type: 'genre', name: '' }))}
-                                className={`flex-1 py-3 font-bold rounded-r-xl transition-all border border-white/10 border-l-0 ${
+                                className={`flex-1 py-3 font-bold border-2 border-white/10 rounded-r-xl transition-all ${
                                     musicianModal.type === 'genre' 
-                                        ? 'bg-purple-600 text-white border-purple-500' 
+                                        ? 'bg-white text-pink-500' 
                                         : 'bg-white/5 text-gray-400 hover:bg-white/10'
                                 }`}
                             >
@@ -750,7 +750,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
                                     }
                                 }}
                                 disabled={musicianModal.name === 'Other' ? !musicianModal.customName.trim() : !musicianModal.name}
-                                className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/20"
+                                className="flex-1 px-4 py-3 bg-gradient-to-br from-pink-400 to-pink-600 hover:from-pink-600 hover:to-pink-400 border-2 border-pink-400 hover:border-pink-600 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/20"
                             >
                                 Get Tips
                             </button>

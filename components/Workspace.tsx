@@ -814,7 +814,7 @@ const TabButton: React.FC<{icon: React.ReactNode, text: string, isActive: boolea
             isActive ? 'bg-white/20 border-pink-600' : `border-transparent hover:bg-white/10 ${inactiveColorClass}`
         }`}
     >
-        <span className={isActive ? 'text-pink-500' : ''}>{icon}</span>
+        <span className={isActive ? 'text-white' : ''}>{icon}</span>
         <span className="inline text-white">{text}</span>
     </button>
 );

@@ -20,12 +20,18 @@ const ChatView: React.FC<ChatViewProps> = ({ messages, onSendMessage, isLoading,
   const [input, setInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<InstanceType<typeof SpeechRecognition> | null>(null);
   const baseTextForTranscriptRef = useRef('');
 
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
   };
 
   useEffect(() => {
@@ -114,7 +120,7 @@ const ChatView: React.FC<ChatViewProps> = ({ messages, onSendMessage, isLoading,
 
   return (
     <div className="bg-white/5 rounded-xl shadow-lg flex flex-col h-[75vh]">
-      <div className="flex-grow p-4 sm:p-6 overflow-y-auto">
+      <div ref={scrollContainerRef} className="flex-grow p-4 sm:p-6 overflow-y-auto">
         <div className="flex flex-col gap-4">
           {messages.map((msg, index) => (
             <div key={index} className={`flex items-end gap-2 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>

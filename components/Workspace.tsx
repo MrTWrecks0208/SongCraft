@@ -22,6 +22,7 @@ import { PencilIcon } from './icons/PencilIcon';
 import { ChatBubbleIcon } from './icons/ChatBubbleIcon';
 import { RecordIcon } from './icons/RecordIcon';
 import { MicrophoneIcon } from './icons/MicrophoneIcon';
+import { UsersIcon } from './icons/UsersIcon';
 import { History as HistoryIcon } from 'lucide-react';
 
 import { handleFirestoreError, OperationType } from '../services/firestoreUtils';
@@ -450,7 +451,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
             handleRhymeRequest();
             return;
         }
-        if (!lyrics.trim()) {
+        if (!lyrics.trim() && type !== SuggestionType.GENERATE_BEAT) {
             setSuggestionError('Please enter some lyrics or record your voice first.');
             return;
         }
@@ -646,7 +647,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-4 flex flex-col gap-6">
+        <div className="max-w-4xl mx-auto p-4 pb-24 flex flex-col gap-6 text-pink-500">
             {isCompanionSelectorOpen && (
                 <CompanionSelector
                     companions={companions}
@@ -670,7 +671,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
                         animate={{ opacity: 1, scale: 1 }}
                         className="bg-[#1d2951] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl"
                     >
-                        <h2 className="text-2xl font-bold text-white mb-6">Write like...</h2>
+                        <h2 className="text-2xl font-bold text-white mb-6">Generate Different Style</h2>
                         
                         <div className="flex mb-6">
                             <button
@@ -678,7 +679,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
                                 className={`flex-1 py-3 font-bold rounded-l-xl transition-all border-2 border-white/10 ${
                                     musicianModal.type === 'artist' 
                                         ? 'bg-pink-500 text-white' 
-                                        : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                                        : 'bg-white/5 text-gray-300 hover:bg-white/10'
                                 }`}
                             >
                                 Artist
@@ -688,7 +689,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
                                 className={`flex-1 py-3 font-bold border-2 border-white/10 rounded-r-xl transition-all ${
                                     musicianModal.type === 'genre' 
                                         ? 'bg-white text-pink-500' 
-                                        : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                                        : 'bg-white/5 text-gray-300 hover:bg-white/10'
                                 }`}
                             >
                                 Genre
@@ -699,7 +700,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
                             <select
                                 value={musicianModal.name}
                                 onChange={(e) => setMusicianModal(prev => ({ ...prev, name: e.target.value, customName: '' }))}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none cursor-pointer"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 appearance-none cursor-pointer"
                             >
                                 <option value="" disabled className="bg-[#1d2951]">Select {musicianModal.type === 'artist' ? 'an Artist' : 'a Genre'}</option>
                                 {(musicianModal.type === 'artist' ? POPULAR_ARTISTS : POPULAR_GENRES).map(item => (
@@ -723,7 +724,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
                                     value={musicianModal.customName}
                                     onChange={(e) => setMusicianModal(prev => ({ ...prev, customName: e.target.value }))}
                                     placeholder={`Enter custom ${musicianModal.type}...`}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && musicianModal.customName.trim()) {
                                             handleSuggestionRequest(SuggestionType.STYLE_MIMIC, false, musicianModal.customName, musicianModal.type);
@@ -750,7 +751,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
                                     }
                                 }}
                                 disabled={musicianModal.name === 'Other' ? !musicianModal.customName.trim() : !musicianModal.name}
-                                className="flex-1 px-4 py-3 bg-gradient-to-br from-pink-400 to-pink-600 hover:from-pink-600 hover:to-pink-400 border-2 border-pink-400 hover:border-pink-600 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/20"
+                                className="flex-1 px-4 py-3 bg-gradient-to-br from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-500 border-2 border-pink-500 hover:border-pink-600 text-white font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-pink-500/20"
                             >
                                 Get Tips
                             </button>
@@ -784,14 +785,17 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
                             <span className="text-[10px] font-bold text-pink-500 uppercase tracking-wider">Guest Mode</span>
                         </div>
                     )}
+                    <button onClick={() => setIsCompanionSelectorOpen(true)} className="p-0 transition-colors flex-shrink-0 text-gray-300 hover:text-yellow-500 active:text-yellow-600" aria-label="Change companion" title="Change AI Companion">
+                         <UsersIcon className="w-8 h-8"/>
+                    </button>
                 </div>
                 
                 <div className="flex justify-center">
                     <div className="bg-white/5 p-1 rounded-full flex items-center gap-1">
-                        <TabButton icon={<PencilIcon className="w-5 h-5"/>} text="Editor" isActive={activeTab === 'editor'} onClick={() => setActiveTab('editor')} />
-                        <TabButton icon={<ChatBubbleIcon className="w-5 h-5"/>} text="Chat" isActive={activeTab === 'chat'} onClick={() => setActiveTab('chat')} />
-                        <TabButton icon={<RecordIcon className="w-5 h-5"/>} text="Recordings" isActive={activeTab === 'recordings'} onClick={() => setActiveTab('recordings')} />
-                        <TabButton icon={<HistoryIcon className="w-5 h-5"/>} text="History" isActive={activeTab === 'history'} onClick={() => setActiveTab('history')} />
+                        <TabButton icon={<PencilIcon className="w-5 h-5"/>} text="Editor" isActive={activeTab === 'editor'} onClick={() => setActiveTab('editor')} inactiveColorClass="hover:text-sky-500" />
+                        <TabButton icon={<ChatBubbleIcon className="w-5 h-5"/>} text="Chat" isActive={activeTab === 'chat'} onClick={() => setActiveTab('chat')} inactiveColorClass="hover:text-yellow-500" />
+                        <TabButton icon={<RecordIcon className="w-5 h-5"/>} text="Recordings" isActive={activeTab === 'recordings'} onClick={() => setActiveTab('recordings')} inactiveColorClass="hover:text-red-600" />
+                        <TabButton icon={<HistoryIcon className="w-5 h-5"/>} text="History" isActive={activeTab === 'history'} onClick={() => setActiveTab('history')} inactiveColorClass="hover:text-emerald-500" />
                     </div>
                 </div>
             </header>
@@ -803,15 +807,15 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
     );
 };
 
-const TabButton: React.FC<{icon: React.ReactNode, text: string, isActive: boolean, onClick: () => void}> = ({icon, text, isActive, onClick}) => (
+const TabButton: React.FC<{icon: React.ReactNode, text: string, isActive: boolean, onClick: () => void, inactiveColorClass?: string}> = ({icon, text, isActive, onClick, inactiveColorClass = ''}) => (
     <button
         onClick={onClick}
-        className={`px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base font-semibold rounded-full flex items-center gap-2 transition-colors ${
-            isActive ? 'bg-[#1d2951] text-white' : 'text-gray-300 hover:bg-white/10'
+        className={`px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base font-regular rounded-full flex items-center gap-2 transition-colors border text-white ${
+            isActive ? 'bg-white/20 border-pink-600' : `border-transparent hover:bg-white/10 ${inactiveColorClass}`
         }`}
     >
-        {icon}
-        <span className="inline">{text}</span>
+        <span className={isActive ? 'text-pink-500' : ''}>{icon}</span>
+        <span className="inline text-white">{text}</span>
     </button>
 );
 

@@ -7,8 +7,8 @@ export const UsersIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
         height="256px"
         viewBox="-1.6 -1.6 19.20 19.20" 
         xmlns="http://www.w3.org/2000/svg" 
-        fill="#fec200" 
-        stroke="#fec200" 
+        fill="currentColor" 
+        stroke="currentColor" 
         strokeWidth="0.00016" 
         {...props}
     >

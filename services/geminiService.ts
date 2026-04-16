@@ -114,6 +114,21 @@ Task:
 2. Evaluate the flow between sections.
 3. Identify specific lyrical devices (metaphor, alliteration, etc.) and suggest how to make them even more effective without changing the core meaning.`;
       break;
+    case SuggestionType.GENERATE_BEAT:
+      prompt = `I need a beat concept created from scratch to help me start a song.
+      
+Current Lyrics (if any):
+---
+${lyrics || "(No lyrics provided yet, create a beat to inspire me)"}
+---
+
+Task:
+1. Suggest a specific BPM (tempo) and Key that fits the mood.
+2. Describe the primary instruments and synths to use.
+3. Provide a textual representation of the drum pattern (e.g., Kick, Snare, Hi-Hat tabs or a beatbox pattern).
+4. Describe the overall vibe and energy level of the beat.
+5. If lyrics are provided, explain how this beat complements the emotion and rhythm of the lyrics.`;
+      break;
     case SuggestionType.CHORDS:
       prompt = `Suggest a chord progression that fits the mood and rhythm of these lyrics.
 

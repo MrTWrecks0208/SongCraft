@@ -12,7 +12,7 @@ const CompanionSelector: React.FC<CompanionSelectorProps> = ({ companions, selec
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
       <div className="bg-main rounded-2xl shadow-2xl w-full max-w-md p-6 m-4" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-2xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-accent-light to-accent">
+        <h2 className="text-2xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-br from-accent-light to-accent">
           Choose Your Companion
         </h2>
         <div className="space-y-3">

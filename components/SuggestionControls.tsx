@@ -9,7 +9,7 @@ import { ChordsIcon } from './icons/ChordsIcon';
 import { RhymeIcon } from './icons/RhymeIcon';
 import { ReviewIcon } from './icons/ReviewIcon';
 import { ShieldCheckIcon } from './icons/ShieldCheckIcon';
-import { User as UserIcon, Video as VideoIcon, Music as MusicIcon, Radio as RadioIcon, Drum as DrumIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import { Sparkles as SparklesIcon, Video as VideoIcon, Music as MusicIcon, Radio as RadioIcon, Drum as DrumIcon, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface SuggestionControlsProps {
   onSuggestionSelect: (type: SuggestionType) => void;
@@ -25,7 +25,7 @@ const suggestionGroups = [
       { type: SuggestionType.NEXT_LINES, icon: <NextLineIcon className="w-4 h-4" /> },
       { type: SuggestionType.RHYMES, icon: <RhymeIcon className="w-4 h-4" /> },
       { type: SuggestionType.STRUCTURE, icon: <StructureIcon className="w-4 h-4" /> },
-      { type: SuggestionType.STYLE_MIMIC, icon: <UserIcon className="w-4 h-4" /> },
+      { type: SuggestionType.STYLE_MIMIC, icon: <SparklesIcon className="w-4 h-4" /> },
     ]
   },
   {

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { SuggestionType } from '../types';
 import { LightbulbIcon } from './icons/LightbulbIcon';
 import { PaperAirplaneIcon } from './icons/PaperAirplaneIcon';
 import { ClearIcon } from './icons/ClearIcon';
+import { TrashIcon } from './icons/TrashIcon';
 
 interface SuggestionDisplayProps {
   suggestion: string;
@@ -30,6 +31,17 @@ const SuggestionDisplay: React.FC<SuggestionDisplayProps> = ({
   onClearSuggestion,
   groundingChunks
 }) => {
+    const [isConfirmingClear, setIsConfirmingClear] = useState(false);
+
+    const handleClearClick = () => {
+        if (isConfirmingClear) {
+            onClearSuggestion();
+            setIsConfirmingClear(false);
+        } else {
+            setIsConfirmingClear(true);
+        }
+    };
+
     if (isLoading && !suggestion) {
       return (
         <div className="bg-white/5 rounded-xl p-4 sm:p-6 shadow-lg transition-all duration-300 border border-white/5">
@@ -60,10 +72,26 @@ const SuggestionDisplay: React.FC<SuggestionDisplayProps> = ({
     
     if (suggestion) {
         return (
-            <div className="bg-white/5 rounded-xl p-4 sm:p-6 shadow-lg min-h-[200px] transition-all duration-300 border border-white/5">
-                <div className="flex flex-col gap-6 relative">
-                    <div className="markdown-body prose prose-invert m-8 whitespace-pre-wrap prose-p:text-gray-300 prose-p:mb-6 last:prose-p:mb-0 prose-strong:text-gray-100 prose-headings:text-transparent prose-headings:bg-clip-text prose-headings:bg-gradient-to-r prose-headings:from-accent-light prose-headings:to-accent prose-headings:mt-8 prose-headings:mb-4 prose-li:text-gray-300">
-                        <ReactMarkdown>{suggestion}</ReactMarkdown>
+            <div className="bg-white/5 rounded-xl p-4 sm:p-6 shadow-lg min-h-[200px] transition-all duration-300 border border-white/5 relative">
+                <button 
+                    onClick={handleClearClick}
+                    className={`absolute top-4 right-4 p-2 rounded-lg transition-all border flex items-center justify-center group ${
+                        isConfirmingClear 
+                            ? 'bg-red-500/20 text-red-400 border-red-500/30' 
+                            : 'bg-white/5 text-gray-400 hover:text-red-400 border-transparent hover:border-red-500/30 hover:bg-red-500/20'
+                    }`}
+                    title={isConfirmingClear ? "Confirm Clear" : "Clear Suggestion"}
+                    aria-label="Clear Suggestion"
+                    onBlur={() => setIsConfirmingClear(false)}
+                >
+                    <TrashIcon className="w-4 h-4" />
+                    {isConfirmingClear && (
+                        <span className="text-red-400 text-xs font-medium pl-2">Clear Suggestion?</span>
+                    )}
+                </button>
+                <div className="flex flex-col gap-6 relative mt-4">
+                    <div className="markdown-body prose prose-invert my-8 whitespace-pre-wrap prose-p:text-gray-300 prose-p:mb-6 last:prose-p:mb-0 prose-strong:text-gray-100 prose-headings:text-transparent prose-headings:bg-clip-text prose-headings:bg-gradient-to-br prose-headings:from-accent-light prose-headings:to-accent prose-headings:mt-8 prose-headings:mb-4 prose-li:text-gray-300">
+                        <span className="text-white font-semibold text-lg"><ReactMarkdown>{suggestion}</ReactMarkdown></span>
                     </div>
 
                     {groundingChunks && groundingChunks.length > 0 && (
@@ -135,14 +163,6 @@ const SuggestionDisplay: React.FC<SuggestionDisplayProps> = ({
                         </div>
                         <div className="flex justify-between items-center mt-3">
                             <p className="text-[10px] text-gray-500">Press Ctrl+Enter to submit</p>
-                            <button 
-                                onClick={onClearSuggestion}
-                                className="px-4 py-2 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded-lg transition-all border border-white/10 hover:border-red-500/30 flex items-center gap-2 text-xs font-medium"
-                                title="Clear suggestion"
-                            >
-                                <ClearIcon className="w-3 h-3" />
-                                Clear Suggestion
-                            </button>
                         </div>
                     </div>
                 </div>

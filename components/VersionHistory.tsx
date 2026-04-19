@@ -1,6 +1,7 @@
 import React from 'react';
 import { ProjectVersion } from '../types';
-import { History as HistoryIcon, RotateCcw, Trash2 } from 'lucide-react';
+import { History as HistoryIcon, RotateCcw } from 'lucide-react';
+import { TrashIcon } from './icons/TrashIcon';
 import { format } from 'date-fns';
 
 interface VersionHistoryProps {
@@ -49,17 +50,17 @@ const VersionHistory: React.FC<VersionHistoryProps> = ({ versions, onRestore, on
             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={() => onRestore(version)}
-                className="p-2 rounded-lg bg-pink-600/20 text-pink-500 hover:bg-pink-500 hover:text-white transition-all"
+                className="mx-1 rounded-lg text-emerald-500 hover:text-emerald-400 active:text-emerald-600 transition-all"
                 title="Restore this version"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-5 h-5" />
               </button>
               <button
                 onClick={() => onDelete(version.id)}
-                className="p-2 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white transition-all"
+                className="mx-1 rounded-lg text-red-500 hover:text-red-400 font-light active:text-red-600 transition-all"
                 title="Delete this version"
               >
-                <Trash2 className="w-4 h-4" />
+                <TrashIcon className="w-6 h-6" />
               </button>
             </div>
           </div>

@@ -24,6 +24,7 @@ import { RecordIcon } from './icons/RecordIcon';
 import { MicrophoneIcon } from './icons/MicrophoneIcon';
 import { UsersIcon } from './icons/UsersIcon';
 import { History as HistoryIcon } from 'lucide-react';
+import { Sparkles as SparklesIcon } from 'lucide-react';
 
 import { handleFirestoreError, OperationType } from '../services/firestoreUtils';
 
@@ -671,7 +672,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
                         animate={{ opacity: 1, scale: 1 }}
                         className="bg-[#1d2951] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl"
                     >
-                        <h2 className="text-2xl font-bold text-white mb-6">Generate Different Style</h2>
+                        <h2 className="text-2xl font-bold text-white mb-6">Change Style</h2>
                         
                         <div className="flex mb-6">
                             <button
@@ -794,10 +795,10 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
                 
                 <div className="flex justify-center">
                     <div className="bg-white/5 p-1 rounded-full flex items-center gap-1">
-                        <TabButton icon={<PencilIcon className="w-5 h-5"/>} text="Editor" isActive={activeTab === 'editor'} onClick={() => setActiveTab('editor')} inactiveColorClass="hover:text-sky-500" />
-                        <TabButton icon={<ChatBubbleIcon className="w-5 h-5"/>} text="Chat" isActive={activeTab === 'chat'} onClick={() => setActiveTab('chat')} inactiveColorClass="hover:text-yellow-500" />
-                        <TabButton icon={<RecordIcon className="w-5 h-5"/>} text="Recordings" isActive={activeTab === 'recordings'} onClick={() => setActiveTab('recordings')} inactiveColorClass="hover:text-red-600" />
-                        <TabButton icon={<HistoryIcon className="w-5 h-5"/>} text="History" isActive={activeTab === 'history'} onClick={() => setActiveTab('history')} inactiveColorClass="hover:text-emerald-500" />
+                        <TabButton icon={<PencilIcon className="w-5 h-5"/>} text="Editor" isActive={activeTab === 'editor'} onClick={() => setActiveTab('editor')} activeColorClass="text-sky-500" activeBorderClass="border-sky-500 border-2" inactiveColorClass="hover:text-sky-500" />
+                        <TabButton icon={<ChatBubbleIcon className="w-5 h-5"/>} text="Chat" isActive={activeTab === 'chat'} onClick={() => setActiveTab('chat')} activeColorClass="text-yellow-500" activeBorderClass="border-yellow-500 border-2" inactiveColorClass="hover:text-yellow-500" />
+                        <TabButton icon={<RecordIcon className="w-5 h-5"/>} text="Recordings" isActive={activeTab === 'recordings'} onClick={() => setActiveTab('recordings')} activeColorClass="text-red-500" activeBorderClass="border-red-500 border-2" inactiveColorClass="hover:text-red-500" />
+                        <TabButton icon={<HistoryIcon className="w-5 h-5"/>} text="History" isActive={activeTab === 'history'} onClick={() => setActiveTab('history')} activeColorClass="text-emerald-500" activeBorderClass="border-emerald-500 border-2" inactiveColorClass="hover:text-emerald-500" />
                     </div>
                 </div>
             </header>
@@ -809,14 +810,22 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
     );
 };
 
-const TabButton: React.FC<{icon: React.ReactNode, text: string, isActive: boolean, onClick: () => void, inactiveColorClass?: string}> = ({icon, text, isActive, onClick, inactiveColorClass = ''}) => (
+const TabButton: React.FC<{
+    icon: React.ReactNode, 
+    text: string, 
+    isActive: boolean, 
+    onClick: () => void, 
+    activeColorClass?: string,
+    activeBorderClass?: string,
+    inactiveColorClass?: string
+}> = ({icon, text, isActive, onClick, activeColorClass = 'text-white', activeBorderClass = 'border-pink-600', inactiveColorClass = ''}) => (
     <button
         onClick={onClick}
-        className={`px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base font-regular rounded-full flex items-center gap-2 transition-colors border text-white ${
-            isActive ? 'bg-white/20 border-pink-600' : `border-transparent hover:bg-white/10 ${inactiveColorClass}`
+        className={`px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base font-regular rounded-full flex items-center gap-2 transition-colors border ${
+            isActive ? `bg-white/20 ${activeBorderClass} ${activeColorClass}` : `text-white border-transparent hover:bg-white/10 ${inactiveColorClass}`
         }`}
     >
-        <span className={isActive ? 'text-white' : ''}>{icon}</span>
+        <span>{icon}</span>
         <span className="inline text-white">{text}</span>
     </button>
 );

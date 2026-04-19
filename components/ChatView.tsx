@@ -155,7 +155,7 @@ const ChatView: React.FC<ChatViewProps> = ({ messages, onSendMessage, isLoading,
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder={isRecording ? 'Listening...' : `Ask ${companionName} for ideas...`}
-            className="w-full bg-gray-900/50 border-2 border-gray-700 rounded-lg p-3 text-gray-200 focus:ring-2 focus:ring-accent focus:border-accent transition duration-200 resize-none"
+            className="w-full bg-gray-900/50 border-pink-600 rounded-lg p-3 text-gray-200 focus:border-pink-500 transition duration-200 resize-none"
             rows={1}
             disabled={isLoading}
           />

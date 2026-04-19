@@ -43,9 +43,12 @@ const Settings: React.FC<SettingsProps> = ({ onBack, onGoToPricing }) => {
           Back to Projects
         </button>
 
-        <h1 className="text-4xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-br from-accent to-accent-light">
-          Settings
-        </h1>
+        <div className="flex items-center gap-3 mb-8">
+            <img src="/logo.png" alt="GhostWriter Logo" className="w-10 h-10 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
+            <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-accent to-accent-light">
+              Settings
+            </h1>
+        </div>
 
         <div className="flex flex-col md:flex-row gap-8">
           {/* Sidebar */}

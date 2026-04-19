@@ -137,11 +137,12 @@ const Landing: React.FC<LandingProps> = ({ onStart }) => {
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-accent/10 blur-[120px] pointer-events-none"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-accent/10 blur-[120px] pointer-events-none"></div>
         
-        <div className="relative z-10 flex flex-col items-center w-full mt-12">
-            <h1 className="text-6xl md:text-7xl font-extrabold text-white mb-2 tracking-tighter">
-                SongCraft
+        <div className="relative z-10 flex flex-col items-center w-full mt-12 mb-8">
+            <img src="/logo.png" alt="" className="w-32 h-32 md:w-48 md:h-48 object-contain mb-4" onError={(e) => e.currentTarget.style.display = 'none'} />
+            <h1 className="text-6xl md:text-7xl font-extrabold text-white mb-2 tracking-tighter flex items-center justify-center">
+                <img src="/wordmark.png" alt="GhostWriter" className="max-h-24 md:max-h-32 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerText = 'GhostWriter'; }} />
             </h1>
-            <p className="text-xl text-accent-light/60 mb-12 font-medium">
+            <p className="text-xl text-accent-light/60 mb-8 font-medium">
                 Your AI Songwriting Partner
             </p>
 

@@ -129,9 +129,12 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricin
     <div className="max-w-6xl mx-auto p-6 min-h-screen">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
         <div className="text-center sm:text-left">
-          <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-accent to-accent-light mb-2">
-            Your Projects
-          </h1>
+        <div className="flex items-center gap-3 justify-center sm:justify-start mb-2">
+            <img src="/logo.png" alt="GhostWriter Logo" className="w-10 h-10 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-accent to-accent-light">
+              Your Projects
+            </h1>
+        </div>
           <p className="text-gray-200">Manage your songs and creative ideas</p>
         </div>
         
@@ -222,8 +225,11 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricin
           className="group relative flex flex-col items-center justify-center p-8 bg-white/10 border border-white/10 rounded-3xl hover:bg-white/30 transition-colors duration-300 min-h-[240px] shadow-xl overflow-hidden transform-gpu"
         >
           <div className="absolute inset-0 backdrop-blur-md pointer-events-none -z-10" />
-          <div className="bg-gradient-to-br from-accent to-accent-light p-4 rounded-2xl mb-4 group-hover:scale-110 transition-transform shadow-lg shadow-accent/20">
-            <PlusIcon className="w-8 h-8 text-white" />
+          <div className="p-4 rounded-2xl mb-4 group-hover:scale-110 transition-transform relative">
+            <img src="/logo.png" alt="GhostWriter Logo" className="w-12 h-12 object-contain opacity-50 absolute inset-0 m-auto mix-blend-screen -z-10 blur-sm" onError={(e) => e.currentTarget.style.display = 'none'} />
+            <div className="bg-gradient-to-br from-accent to-accent-light p-3 rounded-xl shadow-lg shadow-accent/20">
+              <PlusIcon className="w-8 h-8 text-white relative z-10" />
+            </div>
           </div>
           <span className="text-xl font-bold text-white">New Project</span>
           <p className="text-sm text-gray-200 mt-2">Start a new project</p>
@@ -265,8 +271,8 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricin
               </motion.button>
 
               <div className="flex flex-col items-center text-center flex-grow justify-center">
-                <div className="bg-gradient-to-br from-accent to-accent-light p-4 rounded-2xl mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-accent/20">
-                  <MusicNoteIcon className="w-10 h-10 text-white" /> 
+                <div className="p-4 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
+                  <img src="/logo.png" alt="GhostWriter Logo" className="w-12 h-12 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerHTML = '<svg class="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 18V5L21 3V16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="2"/></svg>'; }} /> 
                 </div>
                 <h4 className="text-xl font-bold text-white mb-2 line-clamp-2 px-2 leading-tight" title={project.title}>
                   {project.title}

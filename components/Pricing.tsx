@@ -77,8 +77,11 @@ const Pricing: React.FC<PricingProps> = ({ onBack }) => {
           <button onClick={onBack} className="text-gray-300 hover:text-white transition-colors">
             &larr; Back to Projects
           </button>
-          <div className="text-center flex-grow">
-            <h1 className="text-4xl font-bold mb-4">Pricing Plans</h1>
+          <div className="text-center flex-grow flex flex-col items-center">
+            <div className="flex items-center justify-center gap-3 mb-4">
+                <img src="/logo.png" alt="GhostWriter Logo" className="w-12 h-12 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
+                <h1 className="text-4xl font-bold">Pricing Plans</h1>
+            </div>
             <p className="text-gray-300">Choose the plan that fits your creative journey.</p>
           </div>
           <div className="w-20" /> {/* Spacer for centering */}

@@ -5,9 +5,7 @@
 
 # Run and deploy
 
-This contains everything needed to run app locally.
-
-<a href="https://ai.studio/apps/cea25e25-6a9e-4eb6-91ff-790baa75cb3e">Click Here</a>
+To run app locally, <button><a href="https://ai.studio/apps/cea25e25-6a9e-4eb6-91ff-790baa75cb3e">click here</a></button>
 
 ## Run Locally
 

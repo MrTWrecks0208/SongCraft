@@ -11,6 +11,7 @@ import { MusicNoteIcon } from './icons/MusicNoteIcon';
 import { User as UserIcon, Settings as SettingsIcon, LogOut, ChevronDown, CreditCard } from 'lucide-react';
 
 import { handleFirestoreError, OperationType } from '../services/firestoreUtils';
+import { useSubscription } from '../hooks/useSubscription';
 
 interface ProjectListProps {
   onSelectProject: (projectId: string) => void;
@@ -22,6 +23,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricin
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const subscription = useSubscription();
 
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -70,6 +72,11 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricin
 
   const handleCreateProject = async () => {
     if (!auth.currentUser) return;
+
+    if (subscription.status !== 'active' && projects.length >= 3) {
+      onGoToPricing();
+      return;
+    }
 
     const path = `users/${auth.currentUser.uid}/projects`;
     const newProjectData = {
@@ -127,22 +134,23 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricin
 
   return (
     <div className="max-w-6xl mx-auto p-6 min-h-screen">
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-        <div className="text-center sm:text-left">
-        <div className="flex items-center gap-3 justify-center sm:justify-start mb-2">
-            <img src="/logo.png" alt="GhostWriter Logo" className="w-10 h-10 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
-            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-accent to-accent-light">
+      <div className="flex flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-2 sm:gap-4">
+        <div className="text-left">
+          <div className="flex items-center gap-2 sm:gap-3 justify-start mb-1 sm:mb-2">
+            <img src="/logo.png" alt="GhostWriter Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
+            <h1 className="text-xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-accent to-accent-light leading-tight">
               Your Projects
             </h1>
-        </div>
-          <p className="text-gray-200">Manage your songs and creative ideas</p>
+          </div>
+          <p className="text-xs sm:text-base text-gray-300">Manage your songs and creative ideas</p>
         </div>
         
-        <div className="relative flex items-center gap-4">
+        <div className="relative flex items-center gap-2 sm:gap-4 shrink-0 mt-1 sm:mt-0">
           {auth.currentUser?.isAnonymous && (
-            <div className="px-3 py-1 bg-accent/20 border border-accent/30 rounded-full flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-              <span className="text-[10px] font-bold text-accent uppercase tracking-wider">Guest Mode</span>
+            <div className="px-2 sm:px-3 py-1 bg-accent/20 border border-accent/30 rounded-full flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-accent animate-pulse shrink-0" />
+              <span className="text-[10px] font-bold text-accent uppercase tracking-wider hidden sm:block">Guest Mode</span>
+              <span className="text-[10px] font-bold text-accent uppercase tracking-wider sm:hidden">Guest</span>
             </div>
           )}
           <button

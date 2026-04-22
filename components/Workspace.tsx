@@ -27,15 +27,18 @@ import { History as HistoryIcon } from 'lucide-react';
 import { Sparkles as SparklesIcon } from 'lucide-react';
 
 import { handleFirestoreError, OperationType } from '../services/firestoreUtils';
+import { useSubscription } from '../hooks/useSubscription';
 
 interface WorkspaceProps {
     projectId: string;
     onBack: () => void;
+    onGoToPricing: () => void;
 }
 
 let isStorageAvailable = true;
 
-const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
+const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack, onGoToPricing }) => {
+    const subscription = useSubscription();
     // Project Metadata
     const [projectTitle, setProjectTitle] = useState('Untitled Song');
 
@@ -599,6 +602,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
                             onSuggestionSelect={handleSuggestionRequest} 
                             isLoading={isSuggestionLoading || isSongGenerating} 
                             selectedType={activeSuggestionType}
+                            onGoToPricing={onGoToPricing}
                         />
                         <SuggestionDisplay 
                             suggestion={suggestion} 
@@ -655,6 +659,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
                     selectedCompanion={companion}
                     onSelect={handleCompanionSelect}
                     onClose={() => setIsCompanionSelectorOpen(false)}
+                    onGoToPricing={onGoToPricing}
                 />
             )}
             {rhymeState.isOpen && (
@@ -782,13 +787,14 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack }) => {
                         />
                     </div>
                     {auth.currentUser?.isAnonymous && (
-                        <div className="px-3 py-1 bg-pink-500/20 border border-pink-500/30 rounded-full flex items-center gap-2 flex-shrink-0">
-                            <div className="w-2 h-2 rounded-full bg-pink-500 animate-pulse" />
-                            <span className="text-[10px] font-bold text-pink-500 uppercase tracking-wider">Guest Mode</span>
+                        <div className="px-2 sm:px-3 py-1 bg-pink-500/20 border border-pink-500/30 rounded-full flex items-center gap-2 flex-shrink-0">
+                            <div className="w-2 h-2 rounded-full bg-pink-500 animate-pulse shrink-0" />
+                            <span className="text-[10px] font-bold text-pink-500 uppercase tracking-wider hidden sm:block">Guest Mode</span>
+                            <span className="text-[10px] font-bold text-pink-500 uppercase tracking-wider sm:hidden">Guest</span>
                         </div>
                     )}
-                    <button onClick={() => setIsCompanionSelectorOpen(true)} className="p-0 transition-colors flex-shrink-0 text-gray-300 hover:text-yellow-500 active:text-yellow-600 relative overflow-hidden rounded-full w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white/10 group" aria-label="Change companion" title="Change AI Companion">
-                         <svg fill="currentColor" viewBox="0 0 24 24" className="w-6 h-6 absolute inset-0 m-auto text-gray-300 group-hover:text-yellow-500 transition-colors"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                    <button onClick={() => setIsCompanionSelectorOpen(true)} className="p-0 transition-colors flex-shrink-0 hover:text-yellow-500 active:text-yellow-600 relative overflow-hidden w-6 h-6 flex items-center justify-center group" aria-label="Change companion" title="Change AI Companion">
+                         <svg fill="#fff" viewBox="0 0 32 32" id="icon" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"><title>chat-bot</title><path d="M16,19a6.9908,6.9908,0,0,1-5.833-3.1287l1.666-1.1074a5.0007,5.0007,0,0,0,8.334,0l1.666,1.1074A6.9908,6.9908,0,0,1,16,19Z"></path><path d="M20,8a2,2,0,1,0,2,2A1.9806,1.9806,0,0,0,20,8Z"></path><path d="M12,8a2,2,0,1,0,2,2A1.9806,1.9806,0,0,0,12,8Z"></path><path d="M17.7358,30,16,29l4-7h6a1.9966,1.9966,0,0,0,2-2V6a1.9966,1.9966,0,0,0-2-2H6A1.9966,1.9966,0,0,0,4,6V20a1.9966,1.9966,0,0,0,2,2h9v2H6a3.9993,3.9993,0,0,1-4-4V6A3.9988,3.9988,0,0,1,6,2H26a3.9988,3.9988,0,0,1,4,4V20a3.9993,3.9993,0,0,1-4,4H21.1646Z"></path><rect id="_Transparent_Rectangle_" data-name="&lt;Transparent Rectangle&gt;" fill="none" width="16" height="16"></rect></g></svg>
                          <img src="/logo.png" alt="Companion" className="w-6 h-6 object-contain relative z-10" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                     </button>
                 </div>
@@ -821,12 +827,12 @@ const TabButton: React.FC<{
 }> = ({icon, text, isActive, onClick, activeColorClass = 'text-white', activeBorderClass = 'border-pink-600', inactiveColorClass = ''}) => (
     <button
         onClick={onClick}
-        className={`px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base font-regular rounded-full flex items-center gap-2 transition-colors border ${
+        className={`px-3 py-2 text-sm sm:px-4 sm:py-2 sm:text-base font-regular rounded-full flex items-center gap-1 sm:gap-2 transition-colors border ${
             isActive ? `bg-white/20 ${activeBorderClass} ${activeColorClass}` : `text-white border-transparent hover:bg-white/10 ${inactiveColorClass}`
         }`}
     >
         <span>{icon}</span>
-        <span className="inline text-white">{text}</span>
+        <span className="hidden sm:inline text-white">{text}</span>
     </button>
 );
 

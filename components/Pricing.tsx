@@ -38,7 +38,7 @@ const Pricing: React.FC<PricingProps> = ({ onBack }) => {
     },
   ];
 
-  const handleSubscribe = async (priceId?: string) => {
+  const handleSubscribe = async (tierName: string, priceId?: string) => {
     if (!priceId) return;
     if (!auth.currentUser) {
       alert('Please sign in to subscribe.');
@@ -46,24 +46,19 @@ const Pricing: React.FC<PricingProps> = ({ onBack }) => {
     }
 
     try {
-      const response = await fetch('/api/create-checkout-session', {
+      const res = await fetch('/create-checkout-session', { 
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          priceId,
-          customerEmail: auth.currentUser.email,
-        }),
+        body: JSON.stringify({ 
+          userId: auth.currentUser.uid,
+          priceId: priceId,
+          tierName: tierName
+        })
       });
-
-      const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        console.error('Failed to create checkout session:', data.error);
-        alert('Failed to start checkout. Please check your Stripe configuration.');
-      }
+      const data = await res.json();
+      window.location.href = data.url;
     } catch (error) {
       console.error('Error starting checkout:', error);
       alert('An error occurred. Please try again.');
@@ -137,7 +132,7 @@ const Pricing: React.FC<PricingProps> = ({ onBack }) => {
                 ))}
               </ul>
               <button
-                onClick={() => handleSubscribe(billingCycle === 'monthly' ? tier.priceId?.monthly : tier.priceId?.annually)}
+                onClick={() => handleSubscribe(tier.name, billingCycle === 'monthly' ? tier.priceId?.monthly : tier.priceId?.annually)}
                 disabled={tier.isCurrent}
                 className={`w-full py-3 rounded-xl font-bold transition-all ${
                   tier.isCurrent

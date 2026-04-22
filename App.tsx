@@ -84,7 +84,7 @@ function App() {
       {view === 'pricing' && user && <Pricing onBack={handleBackToProjects} />}
       {view === 'settings' && user && <Settings onBack={handleBackToProjects} onGoToPricing={handleGoToPricing} />}
       {view === 'workspace' && currentProjectId && user && (
-        <Workspace projectId={currentProjectId} onBack={handleBackToProjects} />
+        <Workspace projectId={currentProjectId} onBack={handleBackToProjects} onGoToPricing={handleGoToPricing} />
       )}
     </div>
   );

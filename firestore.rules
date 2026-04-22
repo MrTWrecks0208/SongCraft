@@ -60,12 +60,13 @@ service cloud.firestore {
     // ===============================================================
 
     function isValidUser(data) {
-      return hasOnlyAllowedFields(['uid', 'email', 'displayName', 'photoURL', 'role']) &&
+      return hasOnlyAllowedFields(['uid', 'email', 'displayName', 'photoURL', 'role', 'createdAt']) &&
              data.uid is string && data.uid.size() > 0 &&
              (data.email == null || (data.email is string && isValidEmail(data.email))) &&
              (!('displayName' in data) || (data.displayName is string && data.displayName.size() < 100)) &&
              (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() < 500)) &&
-             (!('role' in data) || (data.role in ['admin', 'user', 'guest']));
+             (!('role' in data) || (data.role in ['admin', 'user', 'guest'])) &&
+             (!('createdAt' in data) || data.createdAt is string);
     }
 
     function isValidProject(data) {

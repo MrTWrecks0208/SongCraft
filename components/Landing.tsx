@@ -14,6 +14,12 @@ interface LandingProps {
   onStart: () => void;
 }
 
+declare global {
+  interface Window {
+    grecaptcha: any;
+  }
+}
+
 const Landing: React.FC<LandingProps> = ({ onStart }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,10 +27,7 @@ const Landing: React.FC<LandingProps> = ({ onStart }) => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleEmailAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setIsLoading(true);
+  const executeFirebaseAuth = async () => {
     console.log(`Starting Email ${isSignUp ? 'Sign Up' : 'Sign In'}...`);
     try {
       if (isSignUp) {
@@ -59,6 +62,52 @@ const Landing: React.FC<LandingProps> = ({ onStart }) => {
       }
       setError(message);
     } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+    
+    try {
+      // reCAPTCHA execution
+      if (window.grecaptcha && window.grecaptcha.enterprise) {
+        window.grecaptcha.enterprise.ready(async () => {
+          try {
+            const token = await window.grecaptcha.enterprise.execute('6LcSAMAsAAAAALe5dbJss12J4SfUW-RbITu-CT4F', {action: 'LOGIN'});
+            
+            // Send token to backend
+            const verifyRes = await fetch('/api/verify-recaptcha', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token })
+            });
+
+            if (!verifyRes.ok) {
+                throw new Error("Failed to verify reCAPTCHA on the server.");
+            }
+            const verifyData = await verifyRes.json();
+            if(!verifyData.success) {
+                throw new Error(verifyData.error || "reCAPTCHA verification failed.");
+            }
+            
+            // Proceed with Firebase Auth
+            await executeFirebaseAuth();
+          } catch (recaptchaErr: any) {
+            console.error('reCAPTCHA error:', recaptchaErr);
+            setError('reCAPTCHA verification failed: ' + recaptchaErr.message);
+            setIsLoading(false);
+          }
+        });
+      } else {
+        console.warn('reCAPTCHA not loaded, proceeding without it');
+        await executeFirebaseAuth();
+      }
+    } catch (err: any) {
+      console.error('Unexpected error during auth flow:', err);
+      setError(err.message);
       setIsLoading(false);
     }
   };

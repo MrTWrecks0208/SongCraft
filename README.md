@@ -6,5 +6,5 @@
 <br />
 <br />
 <div align="center"
-<p GhostWriter is your AI Songwriting Companion!</p>
+<p>GhostWriter is your AI Songwriting Companion!</p>
 </div>

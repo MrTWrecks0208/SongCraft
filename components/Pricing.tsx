@@ -153,9 +153,16 @@ const Pricing: React.FC<PricingProps> = ({ onBack }) => {
                 )}
                 <h3 className="text-xl md:text-2xl font-bold mb-2">{tier.name}</h3>
                 <p className="text-gray-400 text-xs md:text-sm mb-6 h-10">{tier.description}</p>
-                <div className="mb-6 md:mb-8">
-                  <span className="text-3xl lg:text-4xl font-bold">${tier.price[billingCycle]}</span>
-                  <span className="text-gray-400 text-xs md:text-sm">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>
+                <div className="mb-6 md:mb-8 relative flex items-center">
+                  <div className="flex items-baseline">
+                    <span className="text-3xl lg:text-4xl font-bold">${tier.price[billingCycle]}</span>
+                    <span className="text-gray-400 text-xs md:text-sm ml-1">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>
+                  </div>
+                  {billingCycle === 'annually' && tier.price.monthly * 12 - tier.price.annually > 0 && (
+                    <span className="text-[11px] font-semibold text-[#39FF14] bg-[#39FF14]/10 border border-[#39FF14]/20 px-2 py-0.5 rounded-full ml-2 shadow-[0_0_10px_rgba(57,255,20,0.2)]">
+                      Save ${tier.price.monthly * 12 - tier.price.annually}
+                    </span>
+                  )}
                 </div>
                 <ul className="space-y-3 md:space-y-4 mb-8 flex-grow">
                   {tier.features.map((feature) => {

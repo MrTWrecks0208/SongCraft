@@ -472,6 +472,17 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack, onGoToPricing 
             return;
         }
 
+        if (
+            type === SuggestionType.EXPORT_ZIP ||
+            type === SuggestionType.VERSION_HISTORY ||
+            type === SuggestionType.STEM_SPLITTER ||
+            type === SuggestionType.STUDIO_MODE ||
+            type === SuggestionType.EXPORT_DAW
+        ) {
+            alert(`${type} is coming soon!`);
+            return;
+        }
+
         if (styleName) {
             setSelectedMusician(styleName);
         }

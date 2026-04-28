@@ -1,35 +1,49 @@
 import { JSX } from 'react';
 
 export enum SuggestionType {
-  IMPROVE = 'Improve Lyrics',
   NEXT_LINES = 'Suggest Next Lines',
-  MELODY = 'Suggest Melody',
-  STRUCTURE = 'Suggest Structure',
-  CHORDS = 'Suggest Chords',
   RHYMES = 'Find Rhymes',
   REVIEW = 'Review Lyrics',
-  ORIGINALITY_CHECK = 'Check Originality',
+
+  IMPROVE = 'Improve lyrics',
+  STRUCTURE = 'Suggest Structure',
+  CHORDS = 'Suggest Chords',
+  GENERATE_BEAT = 'Suggest Beat',
+  EXPORT_ZIP = 'Export Project as ZIP',
+
   STYLE_MIMIC = 'Change Style',
-  TIKTOK_HOOK = 'TikTok Hook Generator',
-  GENERATE_SONG = 'Generate Song Preview',
-  RADIO_READY = 'Make It Radio-Ready',
-  GENERATE_BEAT = 'Generate Beat',
+  MELODY = 'Suggest Melody',
+  ORIGINALITY_CHECK = 'Check Originality',
+  VERSION_HISTORY = 'Version History',
+  STEM_SPLITTER = 'Stem Splitter',
+
+  GENERATE_SONG = 'Generate Song',
+  RADIO_READY = 'Radio-Ready Polish',
+  STUDIO_MODE = 'Studio Mode',
+  EXPORT_DAW = 'Export Recordings to DAW Formats'
 }
 
 export const SUGGESTION_COSTS: Record<SuggestionType, number> = {
-  [SuggestionType.IMPROVE]: 1,
   [SuggestionType.NEXT_LINES]: 1,
   [SuggestionType.RHYMES]: 1,
-  [SuggestionType.STRUCTURE]: 1,
-  [SuggestionType.MELODY]: 1,
-  [SuggestionType.CHORDS]: 1,
   [SuggestionType.REVIEW]: 1,
+
+  [SuggestionType.IMPROVE]: 3,
+  [SuggestionType.STRUCTURE]: 3,
+  [SuggestionType.CHORDS]: 3,
+  [SuggestionType.GENERATE_BEAT]: 3,
+  [SuggestionType.EXPORT_ZIP]: 3,
+
   [SuggestionType.STYLE_MIMIC]: 5,
+  [SuggestionType.MELODY]: 5,
   [SuggestionType.ORIGINALITY_CHECK]: 5,
-  [SuggestionType.TIKTOK_HOOK]: 5,
-  [SuggestionType.RADIO_READY]: 5,
-  [SuggestionType.GENERATE_BEAT]: 10,
+  [SuggestionType.VERSION_HISTORY]: 5,
+  [SuggestionType.STEM_SPLITTER]: 5,
+
   [SuggestionType.GENERATE_SONG]: 10,
+  [SuggestionType.RADIO_READY]: 10,
+  [SuggestionType.STUDIO_MODE]: 10,
+  [SuggestionType.EXPORT_DAW]: 10,
 };
 
 export enum SubscriptionTier {
@@ -53,6 +67,7 @@ export const TIER_FEATURES: Record<SubscriptionTier, SuggestionType[]> = {
     SuggestionType.STRUCTURE,
     SuggestionType.CHORDS,
     SuggestionType.GENERATE_BEAT,
+    SuggestionType.EXPORT_ZIP,
   ],
   [SubscriptionTier.HEADLINER]: [
     SuggestionType.NEXT_LINES,
@@ -62,9 +77,12 @@ export const TIER_FEATURES: Record<SubscriptionTier, SuggestionType[]> = {
     SuggestionType.STRUCTURE,
     SuggestionType.CHORDS,
     SuggestionType.GENERATE_BEAT,
+    SuggestionType.EXPORT_ZIP,
     SuggestionType.STYLE_MIMIC,
     SuggestionType.MELODY,
     SuggestionType.ORIGINALITY_CHECK,
+    SuggestionType.VERSION_HISTORY,
+    SuggestionType.STEM_SPLITTER,
   ],
   [SubscriptionTier.LEGEND]: [
     SuggestionType.NEXT_LINES,
@@ -74,12 +92,16 @@ export const TIER_FEATURES: Record<SubscriptionTier, SuggestionType[]> = {
     SuggestionType.STRUCTURE,
     SuggestionType.CHORDS,
     SuggestionType.GENERATE_BEAT,
+    SuggestionType.EXPORT_ZIP,
     SuggestionType.STYLE_MIMIC,
     SuggestionType.MELODY,
     SuggestionType.ORIGINALITY_CHECK,
+    SuggestionType.VERSION_HISTORY,
+    SuggestionType.STEM_SPLITTER,
     SuggestionType.GENERATE_SONG,
-    SuggestionType.TIKTOK_HOOK,
     SuggestionType.RADIO_READY,
+    SuggestionType.STUDIO_MODE,
+    SuggestionType.EXPORT_DAW,
   ]
 };
 

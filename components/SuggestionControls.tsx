@@ -9,7 +9,7 @@ import { ChordsIcon } from './icons/ChordsIcon';
 import { RhymeIcon } from './icons/RhymeIcon';
 import { ReviewIcon } from './icons/ReviewIcon';
 import { ShieldCheckIcon } from './icons/ShieldCheckIcon';
-import { Sparkles as SparklesIcon, Video as VideoIcon, Music as MusicIcon, Radio as RadioIcon, Drum as DrumIcon, ChevronDown, ChevronUp, Zap } from 'lucide-react';
+import { Sparkles as SparklesIcon, Music as MusicIcon, Radio as RadioIcon, Drum as DrumIcon, ChevronDown, ChevronUp, Zap, Archive as ArchiveIcon, History as HistoryIcon, Scissors as ScissorsIcon, Mic as MicIcon, FileUp as FileUpIcon } from 'lucide-react';
 import { useUserCredits } from '../hooks/useUserCredits';
 import { useSubscription } from '../hooks/useSubscription';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -25,7 +25,7 @@ interface SuggestionControlsProps {
 
 const suggestionGroups = [
   {
-    label: "Standard Tools",
+    label: "Open Mic",
     options: [
       { type: SuggestionType.NEXT_LINES, icon: <NextLineIcon className="w-4 h-4" /> },
       { type: SuggestionType.RHYMES, icon: <RhymeIcon className="w-4 h-4" /> },
@@ -33,28 +33,32 @@ const suggestionGroups = [
     ]
   },
   {
-    label: "Advanced Features",
+    label: "Rising Artist",
     options: [
       { type: SuggestionType.IMPROVE, icon: <MagicWandIcon className="w-4 h-4" /> },
       { type: SuggestionType.STRUCTURE, icon: <StructureIcon className="w-4 h-4" /> },
       { type: SuggestionType.CHORDS, icon: <ChordsIcon className="w-4 h-4" /> },
       { type: SuggestionType.GENERATE_BEAT, icon: <DrumIcon className="w-4 h-4" /> },
+      { type: SuggestionType.EXPORT_ZIP, icon: <ArchiveIcon className="w-4 h-4" /> },
     ]
   },
   {
-    label: "Professional Features",
+    label: "Headliner",
     options: [
       { type: SuggestionType.STYLE_MIMIC, icon: <SparklesIcon className="w-4 h-4" /> },
       { type: SuggestionType.MELODY, icon: <MusicNoteIcon className="w-4 h-4" /> },
       { type: SuggestionType.ORIGINALITY_CHECK, icon: <ShieldCheckIcon className="w-4 h-4" /> },
+      { type: SuggestionType.VERSION_HISTORY, icon: <HistoryIcon className="w-4 h-4" /> },
+      { type: SuggestionType.STEM_SPLITTER, icon: <ScissorsIcon className="w-4 h-4" /> },
     ]
   },
   {
-    label: "Premium Models",
+    label: "Legend",
     options: [
       { type: SuggestionType.GENERATE_SONG, icon: <MusicIcon className="w-4 h-4" /> },
-      { type: SuggestionType.TIKTOK_HOOK, icon: <VideoIcon className="w-4 h-4" /> },
       { type: SuggestionType.RADIO_READY, icon: <RadioIcon className="w-4 h-4" /> },
+      { type: SuggestionType.STUDIO_MODE, icon: <MicIcon className="w-4 h-4" /> },
+      { type: SuggestionType.EXPORT_DAW, icon: <FileUpIcon className="w-4 h-4" /> },
     ]
   }
 ];

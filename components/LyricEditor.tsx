@@ -262,7 +262,7 @@ const LyricEditor = forwardRef<LyricEditorHandles, LyricEditorProps>(({ value, o
               </span>
               <button
                 onClick={toggleRecording}
-                className={`flex items-center gap-2 px-5 py-3 rounded-full text-white transition-all duration-300 ease-in-out focus:outline-none focus:ring-4 z-20 shadow-lg mr-4 mb-4 ${
+                className={`flex items-center gap-2 px-4 py-4 rounded-full text-white transition-all duration-300 ease-in-out focus:outline-none focus:ring-4 z-20 shadow-lg mr-4 mb-4 ${
                   isRecording
                     ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500/50 animate-pulse'
                     : 'bg-gray-700 hover:bg-gray-500 focus:ring-gray-500/50'
@@ -276,8 +276,9 @@ const LyricEditor = forwardRef<LyricEditorHandles, LyricEditorProps>(({ value, o
                   </>
                 ) : (
                   <>
-                    <MicrophoneIcon className="w-5 h-5" />
-                    <span className="text-sm font-bold">Speak Lyrics</span>
+                    <span className="flex justify-center items-center round-full">
+                      <MicrophoneIcon className="w-6 h-6" />
+                    </span>
                   </>
                 )}
               </button>

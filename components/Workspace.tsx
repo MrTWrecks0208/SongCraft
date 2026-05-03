@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { doc, onSnapshot, updateDoc, getDoc, collection, addDoc, query, orderBy, deleteDoc, increment } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, getDoc, collection, addDoc, query, orderBy, deleteDoc, increment, getDocs } from 'firebase/firestore';
 import { ref, uploadString, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, auth, storage } from '../firebase';
 import { SuggestionType, Companion, ChatMessage, Project, AudioClip, ProjectVersion, SUGGESTION_COSTS, getEffectiveSuggestionCost } from '../types';
@@ -79,6 +79,10 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack, onGoToPricing 
     
     // Rhyme finder state
     const [rhymeState, setRhymeState] = useState({ isOpen: false, word: '', rhymes: [], isLoading: false, error: null as string | null });
+    const [songPromptModal, setSongPromptModal] = useState({ isOpen: false, prompt: '' });
+    const [stemSplitterState, setStemSplitterState] = useState({ isOpen: false, selectedClipId: '', isLoading: false, progress: 0 });
+    const [toneModal, setToneModal] = useState({ isOpen: false, tone: '', customTone: '' });
+    const [selectedTone, setSelectedTone] = useState<string>('');
     const [musicianModal, setMusicianModal] = useState({ isOpen: false, name: '', customName: '', type: 'artist' as 'artist' | 'genre' });
     const [selectedMusician, setSelectedMusician] = useState<string>('');
     const [selectedStyleType, setSelectedStyleType] = useState<'artist' | 'genre'>('artist');
@@ -347,9 +351,14 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack, onGoToPricing 
         }
     };
 
-    const handleGenerateSong = async () => {
-        if (!lyrics.trim()) {
-            setSuggestionError('Please enter some lyrics to generate a song.');
+    const handleGenerateSong = async (promptText: string, asText: boolean = false) => {
+        if (!promptText.trim()) {
+            setSuggestionError('Please enter a prompt.');
+            return;
+        }
+
+        if (asText) {
+            handleSuggestionRequest(SuggestionType.GENERATE_SONG, false, promptText, undefined);
             return;
         }
 
@@ -379,15 +388,15 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack, onGoToPricing 
 
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const prompt = `Generate a 30-second song with melody and music based on these lyrics:
+            const lyriaPrompt = `Generate a 30-second song with melody and music based on this prompt:
             
-            ${lyrics}
+            ${promptText}
             
-            Style: Catchy and modern.`;
+            ${lyrics.trim() ? `Incorporate these lyrics if possible:\n${lyrics}` : ''}`;
 
             const response = await ai.models.generateContentStream({
                 model: "lyria-3-clip-preview",
-                contents: prompt,
+                contents: lyriaPrompt,
                 config: {
                     responseModalities: ["AUDIO"],
                 }
@@ -467,21 +476,63 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack, onGoToPricing 
         });
     };
 
+    const handleStemSplitSubmit = async () => {
+        if (!stemSplitterState.selectedClipId) return;
+
+        const sourceClip = audioClips.find(c => c.id === stemSplitterState.selectedClipId);
+        if (!sourceClip) {
+            setStemSplitterState(prev => ({ ...prev, isOpen: false }));
+            setSuggestionError('Original audio clip not found.');
+            return;
+        }
+
+        const successDeduction = await deductCredits(SuggestionType.STEM_SPLITTER);
+        if (!successDeduction) {
+            setStemSplitterState(prev => ({ ...prev, isOpen: false }));
+            return;
+        }
+
+        setStemSplitterState(prev => ({ ...prev, isLoading: true, progress: 0 }));
+
+        // Simulate a delay and progress
+        for (let i = 1; i <= 10; i++) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            setStemSplitterState(prev => ({ ...prev, progress: i * 10 }));
+        }
+
+        // Create 4 mock stems using the same audio clip
+        const stems = ['Vocals', 'Drums', 'Bass', 'Other'];
+        const newClips = stems.map(stem => ({
+            id: `stem-${stem}-${Date.now()}-${Math.random()}`,
+            name: `[${stem}] ${sourceClip.name}`,
+            timestamp: Date.now(),
+            audioData: sourceClip.audioData // Mocking actual split by reusing audio
+        }));
+
+        setAudioClips(prev => [...newClips, ...prev]);
+        setStemSplitterState({ isOpen: false, selectedClipId: '', isLoading: false, progress: 0 });
+        setActiveTab('recordings');
+    };
+
     const handleSuggestionRequest = useCallback(async (type: SuggestionType, isRefinement: boolean = false, styleName?: string, styleType?: 'artist' | 'genre') => {
+        if (type === SuggestionType.TONE_SWITCHER && !styleName && !isRefinement) {
+            setToneModal({ isOpen: true, tone: selectedTone, customTone: '' });
+            return;
+        }
+
         if (type === SuggestionType.STYLE_MIMIC && !styleName && !isRefinement) {
             setMusicianModal({ isOpen: true, name: selectedMusician, customName: '', type: selectedStyleType });
             return;
         }
 
-        if (type === SuggestionType.GENERATE_SONG) {
-            handleGenerateSong();
+        if (type === SuggestionType.GENERATE_SONG && !isRefinement) {
+            setSongPromptModal({ isOpen: true, prompt: '' });
             return;
         }
 
         if (
             type === SuggestionType.EXPORT_ZIP ||
             type === SuggestionType.VERSION_HISTORY ||
-            type === SuggestionType.STEM_SPLITTER ||
             type === SuggestionType.STUDIO_MODE ||
             type === SuggestionType.EXPORT_DAW
         ) {
@@ -489,8 +540,42 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack, onGoToPricing 
             return;
         }
 
-        if (styleName) {
-            setSelectedMusician(styleName);
+        if (type === SuggestionType.STEM_SPLITTER) {
+            setStemSplitterState(prev => ({ ...prev, isOpen: true, selectedClipId: '', isLoading: false, progress: 0 }));
+            return;
+        }
+
+        let effectiveStyleName = styleName;
+        if (type === SuggestionType.MAKE_IT_YOURS && !isRefinement) {
+            // Fetch user's past projects to serve as style string
+            if (auth.currentUser) {
+                try {
+                    const qDocs = query(collection(db, 'users', auth.currentUser.uid, 'projects'));
+                    const snap = await getDocs(qDocs);
+                    let pastLyrics = "";
+                    snap.forEach(d => {
+                        if (d.id !== projectId && d.data().lyrics) {
+                            pastLyrics += d.data().lyrics + "\n\n";
+                        }
+                    });
+                    if (pastLyrics.trim()) {
+                        effectiveStyleName = pastLyrics.substring(0, 3000); // Send past lyrics
+                    } else {
+                        setSuggestionError("You don't have enough past projects to analyze your style yet!");
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch past projects for style", e);
+                }
+            }
+        }
+
+        if (effectiveStyleName && type !== SuggestionType.MAKE_IT_YOURS) {
+            if (type === SuggestionType.TONE_SWITCHER) {
+                setSelectedTone(effectiveStyleName);
+            } else {
+                setSelectedMusician(effectiveStyleName);
+            }
         }
         if (styleType) {
             setSelectedStyleType(styleType);
@@ -501,7 +586,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack, onGoToPricing 
             handleRhymeRequest();
             return;
         }
-        if (!lyrics.trim() && type !== SuggestionType.GENERATE_BEAT) {
+        if (!lyrics.trim() && type !== SuggestionType.GENERATE_BEAT && type !== SuggestionType.GENERATE_SONG) {
             setSuggestionError('Please enter some lyrics or record your voice first.');
             return;
         }
@@ -520,7 +605,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack, onGoToPricing 
         
         // Use the current feedback only if it's a refinement request
         const currentFeedback = isRefinement ? feedback : '';
-        const effectiveStyle = styleName || (type === SuggestionType.STYLE_MIMIC ? selectedMusician : undefined);
+        const effectiveStyle = effectiveStyleName || (type === SuggestionType.STYLE_MIMIC ? selectedMusician : (type === SuggestionType.TONE_SWITCHER ? selectedTone : undefined));
         const effectiveStyleType = styleType || (type === SuggestionType.STYLE_MIMIC ? selectedStyleType : undefined);
         
         const successDeduction = await deductCredits(type);
@@ -538,7 +623,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack, onGoToPricing 
             setGroundingChunks(result.groundingChunks || []);
         }
         setIsSuggestionLoading(false);
-    }, [lyrics, feedback, companion.systemInstruction, selectedMusician, selectedStyleType]);
+    }, [lyrics, feedback, companion.systemInstruction, selectedMusician, selectedStyleType, selectedTone, projectId]);
 
     const handleRegenerate = useCallback(() => {
         if (activeSuggestionType) {
@@ -723,6 +808,80 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack, onGoToPricing 
                 />
             )}
             
+            {toneModal.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-[#1d2951] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl flex flex-col"
+                    >
+                        <h2 className="text-2xl font-bold text-white mb-4">Tone Switcher</h2>
+                        <p className="text-sm text-gray-300 mb-6">Select a tone you want the song to have.</p>
+                        
+                        <div className="relative mb-6">
+                            <select
+                                value={toneModal.tone}
+                                onChange={(e) => setToneModal(prev => ({ ...prev, tone: e.target.value, customTone: '' }))}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 appearance-none cursor-pointer"
+                            >
+                                <option value="" disabled className="bg-[#1d2951]">Select Tone</option>
+                                <option value="Happy" className="bg-[#1d2951]">Happy</option>
+                                <option value="Sad" className="bg-[#1d2951]">Sad</option>
+                                <option value="Angry" className="bg-[#1d2951]">Angry</option>
+                                <option value="Nostalgic" className="bg-[#1d2951]">Nostalgic</option>
+                                <option value="Hopeful" className="bg-[#1d2951]">Hopeful</option>
+                                <option value="Melancholic" className="bg-[#1d2951]">Melancholic</option>
+                                <option value="Dark" className="bg-[#1d2951]">Dark</option>
+                                <option value="Romantic" className="bg-[#1d2951]">Romantic</option>
+                                <option value="Other" className="bg-[#1d2951]">Other...</option>
+                            </select>
+                            <svg className="w-5 h-5 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                        
+                        {toneModal.tone === 'Other' && (
+                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-6">
+                                <input
+                                    type="text"
+                                    placeholder="e.g. Dreamy, Energetic"
+                                    value={toneModal.customTone}
+                                    onChange={(e) => setToneModal(prev => ({ ...prev, customTone: e.target.value }))}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                                    autoFocus
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && toneModal.customTone.trim()) {
+                                            handleSuggestionRequest(SuggestionType.TONE_SWITCHER, false, toneModal.customTone);
+                                            setToneModal({ isOpen: false, tone: '', customTone: '' });
+                                        }
+                                    }}
+                                />
+                            </motion.div>
+                        )}
+                        
+                        <div className="flex gap-3 mt-auto">
+                            <button
+                                onClick={() => setToneModal({ isOpen: false, tone: '', customTone: '' })}
+                                className="px-4 py-3 bg-white/5 hover:bg-white/10 text-gray-400 font-bold rounded-xl flex-1 transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const finalTone = toneModal.tone === 'Other' ? toneModal.customTone : toneModal.tone;
+                                    if (finalTone.trim()) {
+                                        handleSuggestionRequest(SuggestionType.TONE_SWITCHER, false, finalTone);
+                                        setToneModal({ isOpen: false, tone: '', customTone: '' });
+                                    }
+                                }}
+                                disabled={toneModal.tone === 'Other' ? !toneModal.customTone.trim() : !toneModal.tone}
+                                className="px-4 py-3 bg-gradient-to-br from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-500 border-2 border-pink-500 hover:border-pink-600 text-white font-bold rounded-xl flex-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-pink-500/20"
+                            >
+                                Get Tips
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+            
             {musicianModal.isOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                     <motion.div 
@@ -833,6 +992,116 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack, onGoToPricing 
                 </div>
             )}
             
+            {songPromptModal.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-[#1d2951] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl flex flex-col"
+                    >
+                        <h2 className="text-2xl font-bold text-white mb-4">Prompt to Song</h2>
+                        <p className="text-sm text-gray-300 mb-6">Describe the song you want to make.</p>
+                        
+                        <textarea
+                            value={songPromptModal.prompt}
+                            onChange={(e) => setSongPromptModal(prev => ({ ...prev, prompt: e.target.value }))}
+                            placeholder="e.g. A catchy pop song about a happy dog in the summer..."
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-pink-500 h-32 resize-none mb-6"
+                        />
+                        
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setSongPromptModal({ isOpen: false, prompt: '' })}
+                                className="px-4 py-3 bg-white/5 hover:bg-white/10 text-gray-400 font-bold rounded-xl flex-1 transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    handleGenerateSong(songPromptModal.prompt, true);
+                                    setSongPromptModal({ isOpen: false, prompt: '' });
+                                }}
+                                disabled={!songPromptModal.prompt.trim()}
+                                className="px-4 py-3 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 text-blue-300 font-bold rounded-xl flex-1 transition-all disabled:opacity-50"
+                            >
+                                Get Lyrics
+                            </button>
+                            <button
+                                onClick={() => {
+                                    handleGenerateSong(songPromptModal.prompt, false);
+                                    setSongPromptModal({ isOpen: false, prompt: '' });
+                                }}
+                                disabled={!songPromptModal.prompt.trim()}
+                                className="px-4 py-3 bg-gradient-to-br from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-500 text-white font-bold rounded-xl flex-[1.5] transition-all disabled:opacity-50 shadow-lg shadow-pink-500/20"
+                            >
+                                Generate Audio
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+
+            {stemSplitterState.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-[#1d2951] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl flex flex-col"
+                    >
+                        <h2 className="text-2xl font-bold text-white mb-4">Stem Splitter</h2>
+                        <p className="text-sm text-gray-300 mb-6">Select an audio recording to separate vocals, drums, bass, and other instruments.</p>
+                        
+                        {stemSplitterState.isLoading ? (
+                            <div className="flex flex-col gap-4 mb-6">
+                                <div className="text-pink-400 font-semibold text-center text-sm">Processing Audio...</div>
+                                <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden border border-white/5">
+                                    <div 
+                                        className="bg-gradient-to-r from-pink-500 to-purple-500 h-full transition-all duration-300"
+                                        style={{ width: `${stemSplitterState.progress}%` }}
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-3 mb-6 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                                {audioClips.length > 0 ? audioClips.map(clip => (
+                                    <button 
+                                        key={clip.id}
+                                        onClick={() => setStemSplitterState(prev => ({ ...prev, selectedClipId: clip.id }))}
+                                        className={`p-3 rounded-xl border text-left flex flex-col gap-1 transition-colors ${
+                                            stemSplitterState.selectedClipId === clip.id 
+                                                ? 'border-pink-500 bg-pink-500/10' 
+                                                : 'border-white/10 bg-white/5 hover:bg-white/10'
+                                        }`}
+                                    >
+                                        <span className="text-sm font-semibold text-white whitespace-nowrap overflow-hidden text-ellipsis">{clip.name}</span>
+                                        <span className="text-[10px] text-gray-400">{new Date(clip.timestamp).toLocaleString()}</span>
+                                    </button>
+                                )) : (
+                                    <div className="text-sm text-gray-400 text-center py-4 bg-white/5 rounded-xl border border-white/10">No recordings found. Go to the Recordings tab to add some.</div>
+                                )}
+                            </div>
+                        )}
+                        
+                        <div className="flex gap-3 mt-auto">
+                            <button
+                                onClick={() => setStemSplitterState({ isOpen: false, selectedClipId: '', isLoading: false, progress: 0 })}
+                                disabled={stemSplitterState.isLoading}
+                                className="px-4 py-3 bg-white/5 hover:bg-white/10 text-gray-400 font-bold rounded-xl flex-1 transition-all disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleStemSplitSubmit}
+                                disabled={!stemSplitterState.selectedClipId || stemSplitterState.isLoading}
+                                className="px-4 py-3 bg-gradient-to-br from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-500 border-2 border-pink-500 hover:border-pink-600 text-white font-bold rounded-xl flex-[1.5] transition-all disabled:opacity-50 shadow-lg shadow-pink-500/20"
+                            >
+                                {stemSplitterState.isLoading ? 'Processing...' : 'Split Audio'}
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+            
             <header className="flex flex-col gap-4">
                 {saveError && (
                     <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-xl flex items-center justify-between">
@@ -869,9 +1138,8 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, onBack, onGoToPricing 
                             </div>
                         )}
                     </div>
-                    <button onClick={() => setIsCompanionSelectorOpen(true)} className="p-0 transition-colors flex-shrink-0 text-white hover:text-yellow-500 active:text-yellow-600 relative overflow-hidden w-6 h-6 flex items-center justify-center group" aria-label="Change companion" title="Change AI Companion">
+                    <button onClick={() => setIsCompanionSelectorOpen(true)} className="p-0 transition-colors flex-shrink-0 text-yellow-500 hover:text-yellow-400 active:text-yellow-600 relative overflow-hidden w-6 h-6 flex items-center justify-center group" aria-label="Change companion" title="Change AI Companion">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bot-message-square-icon lucide-bot-message-square"><path d="M12 6V2H8"/><path d="M15 11v2"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M20 16a2 2 0 0 1-2 2H8.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 4 20.286V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/><path d="M9 11v2"/></svg>
-                         <img src="/logo.png" alt="Companion" className="w-6 h-6 object-contain relative z-10" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                     </button>
                 </div>
                 

@@ -21,6 +21,26 @@ CRITICAL RULES:
 function getPrompt(lyrics: string, suggestionType: SuggestionType, feedback?: string, style?: string, styleType?: 'artist' | 'genre'): string {
   let prompt = "";
   switch (suggestionType) {
+    case SuggestionType.MAKE_IT_YOURS:
+      prompt = `I am writing a song and want help tweaking my current lyrics to better match my personal style, based on my past work.
+      
+My Past Work (Style Reference):
+---
+${style}
+---
+
+Current Lyrics:
+---
+${lyrics}
+---
+
+Task:
+1. Analyze my current lyrics and compare them to my 'Past Work'. Identify what makes my past work unique (e.g., word choice, recurring themes, rhythmic structures).
+2. Suggest 2-3 specific tweaks to the 'Current Lyrics' to make them align more perfectly with my established style.
+3. Show the suggested changes inline and explain exactly how it matches my past work.
+4. DO NOT rewrite the whole song. Focus on making it sound more like ME.`;
+      break;
+
     case SuggestionType.STYLE_MIMIC:
       const target = style || (styleType === 'artist' ? 'a popular musician' : 'a specific genre');
       prompt = `I am writing a song and want help writing it in the style of ${target}.
@@ -36,23 +56,51 @@ Task:
 3. Provide tips on how to capture the "essence" of ${target}'s songwriting (e.g., their use of metaphors, rhythmic patterns, or common themes).
 4. DO NOT rewrite the whole song. Focus on incremental changes and stylistic guidance.`;
       break;
-    case SuggestionType.TIKTOK_HOOK:
-      prompt = `I want to generate a catchy, viral-potential "TikTok Hook" based on my current lyrics.
-      
+
+    case SuggestionType.CHECK_COMMON_PHRASES:
+      prompt = `Review my current lyrics and identify any potentially overused words or phrases (clichés).
+
 Current Lyrics:
 ---
 ${lyrics}
 ---
 
 Task:
-1. Identify the most "hooky" or emotionally resonant part of the current lyrics.
-2. Suggest 2-3 variations of a 15-30 second "TikTok Hook".
-3. For each variation:
-   - Provide the lyrics for the hook.
-   - Suggest a specific "TikTok trend" or visual idea that could go with it (e.g., a transition, a dance, a POV).
-   - Explain why this specific part has viral potential (e.g., "relatable lyrics", "high energy drop", "clever wordplay").
-4. Keep it punchy, memorable, and easy to sing along to.`;
+1. List any words or phrases that are very commonly used in songwriting and might benefit from more original phrasing.
+2. For each identified phrase, explain *why* it's considered common or clichéd.
+3. Suggest 2-3 fresh, alternative ways to express the same idea that fit the tone of the song.`;
       break;
+
+    case SuggestionType.SENTIMENT_ANALYSIS:
+      prompt = `Perform a sentiment analysis on my lyrics to help me understand the emotional tone.
+
+Current Lyrics:
+---
+${lyrics}
+---
+
+Task:
+1. Identify the primary emotion (or mixed emotions) conveyed in these lyrics (e.g., Hopeful, Melancholic, Angry, Nostalgic).
+2. Highlight specific words or lines that contribute most strongly to this sentiment.
+3. Show a brief "emotional arc" of the song (how the feeling changes from beginning to end).
+4. If there's an intended tone described in the feedback, suggest 1-2 small tweaks to push the lyrics closer to that tone.`;
+      break;
+
+    case SuggestionType.TONE_SWITCHER:
+      const targetTone = style || "a different tone";
+      prompt = `I want to switch the tone of my lyrics to be more: ${targetTone}.
+
+Current Lyrics:
+---
+${lyrics}
+---
+
+Task:
+1. Analyze how the current lyrics contrast with the desired tone ("${targetTone}").
+2. Suggest specific changes to vocabulary, imagery, or phrasing to shift the emotional weight toward the requested tone.
+3. Provide an example of how 2-3 lines could be rewritten to match this new tone, while keeping the original meaning and rhythm as close as possible.`;
+      break;
+
     case SuggestionType.NEXT_LINES:
       prompt = `I am writing a song and need help with the next two lines. 
 
@@ -175,6 +223,21 @@ Task:
 4. Provide a brief summary of your findings.
 
 Use Google Search to verify these lyrics against existing song databases.`;
+      break;
+    case SuggestionType.GENERATE_SONG:
+      prompt = `I want to generate lyrics or a song based on a prompt.
+      
+Prompt:
+---
+${style || lyrics}
+---
+
+Task:
+1. Generate complete lyrics based strictly on the provided prompt.
+2. Include song structure (e.g., Verse, Chorus, Bridge).
+3. If the prompt specifies a certain mood, genre, or style, follow it closely.
+4. If no specific instructions are provided other than a topic, use your creative judgment to draft an engaging song.
+5. Provide a brief explanation of your creative choices.`;
       break;
     case SuggestionType.RADIO_READY:
       prompt = `I want to put the final "radio-ready" polish on these lyrics. 

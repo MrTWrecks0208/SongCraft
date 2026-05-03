@@ -5,15 +5,12 @@ import { motion, AnimatePresence } from 'motion/react';
 import { db, auth } from '../firebase';
 import { Project } from '../types';
 import { companions } from '../companions';
-import { PlusIcon } from './icons/PlusIcon';
 import { TrashIcon } from './icons/TrashIcon';
-import { MusicNoteIcon } from './icons/MusicNoteIcon';
-import { User as UserIcon, Settings as SettingsIcon, LogOut, ChevronDown, CreditCard } from 'lucide-react';
-
+import { User as UserIcon, Settings as SettingsIcon, LogOut, ChevronDown, CreditCard, Zap, Plus, Music } from 'lucide-react';
 import { handleFirestoreError, OperationType } from '../services/firestoreUtils';
+
 import { useSubscription } from '../hooks/useSubscription';
 import { useUserCredits } from '../hooks/useUserCredits';
-import { Zap } from 'lucide-react';
 
 interface ProjectListProps {
   onSelectProject: (projectId: string) => void;
@@ -136,12 +133,12 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricin
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 min-h-screen">
+    <div className="w-full p-6 sm:p-8 min-h-screen">
       <div className="flex flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-2 sm:gap-4">
         <div className="text-left">
           <div className="flex items-center gap-2 sm:gap-3 justify-start mb-1 sm:mb-2">
             <img src="/logo.png" alt="GhostWriter Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
-            <h1 className="text-xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-accent to-accent-light leading-tight">
+            <h1 className="text-xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-accent-light to-accent leading-tight">
               Your Projects
             </h1>
           </div>
@@ -167,7 +164,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricin
             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
             className="transition-transform hover:scale-120 active:scale-95 focus:outline-none hover:brightness-110"
           >
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-600 to-pink-500 flex items-center justify-center hover:drop-shadow-xl/25 hover:drop-shadow-pink-200/25 overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-light to-accent flex items-center justify-center hover:drop-shadow-xl/25 hover:drop-shadow-pink-200/25 overflow-hidden">
               {auth.currentUser?.photoURL ? (
                 <img src={auth.currentUser.photoURL} alt="Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               ) : (
@@ -234,23 +231,23 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricin
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 xl:gap-8 max-w-7xl mx-auto">
         {/* Create New Card */}
         <motion.button
           whileHover={{ scale: 1.02, y: -5 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleCreateProject}
-          className="group relative flex flex-col items-center justify-center p-8 bg-white/10 border border-white/10 rounded-3xl hover:bg-white/30 transition-colors duration-300 min-h-[240px] shadow-xl overflow-hidden transform-gpu"
+          className="group relative flex flex-col items-center justify-center p-4 min-h-[180px] w-full max-w-[210px] mx-auto bg-white/10 border border-white/10 rounded-2xl hover:bg-white/30 transition-colors duration-300 shadow-xl overflow-hidden transform-gpu"
         >
           <div className="absolute inset-0 backdrop-blur-md pointer-events-none -z-10" />
-          <div className="p-4 rounded-2xl mb-4 group-hover:scale-110 transition-transform relative">
-            <img src="/logo.png" alt="GhostWriter Logo" className="w-12 h-12 object-contain opacity-50 absolute inset-0 m-auto mix-blend-screen -z-10 blur-sm" onError={(e) => e.currentTarget.style.display = 'none'} />
-            <div className="bg-gradient-to-br from-accent to-accent-light p-3 rounded-xl shadow-lg shadow-accent/20">
-              <PlusIcon className="w-8 h-8 text-white relative z-10" />
+          <div className="py-3 px-4 rounded-xl mb-3 group-hover:scale-110 transition-transform relative flex items-center justify-center">
+            <img src="/logo.png" alt="GhostWriter Logo" className="w-10 h-10 object-contain opacity-50 absolute inset-0 m-auto mix-blend-screen -z-10 blur-sm" onError={(e) => e.currentTarget.style.display = 'none'} />
+            <div className="bg-gradient-to-br from-accent-light to-accent w-12 h-12 flex items-center justify-center rounded-xl shadow-lg shadow-accent/20 relative z-10">
+              <Plus className="w-6 h-6 text-white relative z-10" />
             </div>
           </div>
-          <span className="text-xl font-bold text-white">New Project</span>
-          <p className="text-sm text-gray-200 mt-2">Start a new project</p>
+          <span className="text-base font-bold text-white">New Song</span>
+          <p className="text-xs text-gray-200 mt-1">Start a new song</p>
         </motion.button>
 
         {/* Project Cards */}
@@ -270,7 +267,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricin
                 hover: { y: -8 }
               }}
               onClick={() => onSelectProject(project.id)}
-              className="group relative flex flex-col p-8 bg-white/10 rounded-3xl border border-white/10 hover:border-white/50 hover:bg-white/50 transition-colors duration-300 cursor-pointer min-h-[240px] shadow-xl overflow-hidden transform-gpu"
+              className="group relative flex flex-col p-4 min-h-[180px] w-full max-w-[210px] mx-auto bg-white/10 rounded-2xl border border-white/10 hover:border-white/50 hover:bg-white/50 transition-colors duration-300 cursor-pointer shadow-xl overflow-hidden transform-gpu"
             >
               <div className="absolute inset-0 backdrop-blur-xl pointer-events-none -z-10" />
               {/* Delete Button - Positioned in the corner with improved centering and animation */}
@@ -289,16 +286,15 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricin
               </motion.button>
 
               <div className="flex flex-col items-center text-center flex-grow justify-center">
-                <div className="bg-gradient-to-br from-accent to-accent-light p-4 rounded-2xl mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-accent/20 relative w-20 h-20 flex items-center justify-center">
-                  <svg className="w-10 h-10 text-white absolute inset-0 m-auto" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 18V5L21 3V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="6" cy="18" r="3" stroke="currentColor" strokeWidth="2"/><circle cx="18" cy="16" r="3" stroke="currentColor" strokeWidth="2"/></svg>
-                  <img src="/logo.png" alt="GhostWriter Logo" className="w-10 h-10 object-contain drop-shadow-md relative z-10" onError={(e) => { e.currentTarget.style.display = 'none'; }} /> 
+                <div className="bg-gradient-to-br from-accent-light to-accent w-12 h-12 flex items-center justify-center rounded-xl mb-3 group-hover:scale-110 transition-transform shadow-lg shadow-accent/20 relative">
+                  <Music className="w-6 h-6 text-white relative z-10" />
                 </div>
-                <h4 className="text-xl font-bold text-white mb-2 line-clamp-2 px-2 leading-tight" title={project.title}>
+                <h4 className="text-base font-bold text-white mb-2 line-clamp-2 px-2 leading-tight" title={project.title}>
                   {project.title}
                 </h4>
               </div>
 
-              <div className="flex items-center justify-between text-[11px] uppercase tracking-wider font-bold">
+              <div className="flex items-center justify-between text-[10px] uppercase tracking-wider font-bold">
                 <div className="flex items-center gap-2 text-gray-200">
                   <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
                   <span>{project.companion?.name || 'Melody'}</span>
@@ -307,7 +303,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricin
               </div>
               
               {/* Subtle gradient overlay on hover */}
-              <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-accent-light/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-br from-accent-light/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
             </motion.div>
           ))}
         </AnimatePresence>

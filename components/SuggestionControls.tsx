@@ -9,7 +9,7 @@ import { ChordsIcon } from './icons/ChordsIcon';
 import { RhymeIcon } from './icons/RhymeIcon';
 import { ReviewIcon } from './icons/ReviewIcon';
 import { ShieldCheckIcon } from './icons/ShieldCheckIcon';
-import { Sparkles as SparklesIcon, Music as MusicIcon, Radio as RadioIcon, Drum as DrumIcon, ChevronDown, ChevronUp, Zap, Archive as ArchiveIcon, History as HistoryIcon, Scissors as ScissorsIcon, Mic as MicIcon, FileUp as FileUpIcon } from 'lucide-react';
+import { Sparkles as SparklesIcon, Music as MusicIcon, Radio as RadioIcon, Drum as DrumIcon, ChevronDown, ChevronUp, Zap, Archive as ArchiveIcon, History as HistoryIcon, Scissors as ScissorsIcon, Mic as MicIcon, FileUp as FileUpIcon, User as UserIcon, Search as SearchIcon, Smile as SmileIcon, Sliders as SlidersIcon } from 'lucide-react';
 import { useUserCredits } from '../hooks/useUserCredits';
 import { useSubscription } from '../hooks/useSubscription';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -30,13 +30,15 @@ const suggestionGroups = [
       { type: SuggestionType.NEXT_LINES, icon: <NextLineIcon className="w-4 h-4" /> },
       { type: SuggestionType.RHYMES, icon: <RhymeIcon className="w-4 h-4" /> },
       { type: SuggestionType.REVIEW, icon: <ReviewIcon className="w-4 h-4" /> },
+      { type: SuggestionType.CHECK_COMMON_PHRASES, icon: <SearchIcon className="w-4 h-4" /> },
+      { type: SuggestionType.STRUCTURE, icon: <StructureIcon className="w-4 h-4" /> },
     ]
   },
   {
     label: "Rising Artist",
     options: [
+      { type: SuggestionType.SENTIMENT_ANALYSIS, icon: <SmileIcon className="w-4 h-4" /> },
       { type: SuggestionType.IMPROVE, icon: <MagicWandIcon className="w-4 h-4" /> },
-      { type: SuggestionType.STRUCTURE, icon: <StructureIcon className="w-4 h-4" /> },
       { type: SuggestionType.CHORDS, icon: <ChordsIcon className="w-4 h-4" /> },
       { type: SuggestionType.GENERATE_BEAT, icon: <DrumIcon className="w-4 h-4" /> },
       { type: SuggestionType.EXPORT_ZIP, icon: <ArchiveIcon className="w-4 h-4" /> },
@@ -46,6 +48,8 @@ const suggestionGroups = [
     label: "Headliner",
     options: [
       { type: SuggestionType.STYLE_MIMIC, icon: <SparklesIcon className="w-4 h-4" /> },
+      { type: SuggestionType.TONE_SWITCHER, icon: <SlidersIcon className="w-4 h-4" /> },
+      { type: SuggestionType.MAKE_IT_YOURS, icon: <UserIcon className="w-4 h-4" /> },
       { type: SuggestionType.MELODY, icon: <MusicNoteIcon className="w-4 h-4" /> },
       { type: SuggestionType.ORIGINALITY_CHECK, icon: <ShieldCheckIcon className="w-4 h-4" /> },
       { type: SuggestionType.VERSION_HISTORY, icon: <HistoryIcon className="w-4 h-4" /> },

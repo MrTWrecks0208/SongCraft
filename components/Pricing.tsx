@@ -22,15 +22,15 @@ const Pricing: React.FC<PricingProps> = ({ onBack }) => {
       name: 'Open Mic',
       price: { monthly: 0, annually: 0 },
       description: 'Perfect for getting started.',
-      features: ['Basic AI Suggestions', 'Up to 3 Projects', 'Limited Daily Generations', 'Standard Support'],
-      buttonText: 'Current Plan',
+      features: ['60 Credits / Month', 'Core Writing Tools', '3 Projects', '2 Full Song Generations'],
+      buttonText: 'Start Free',
       isCurrent: true,
     },
         {
       name: 'Rising Artist',
       price: { monthly: 12, annually: 120 },
       description: 'For serious songwriters.',
-      features: ['Advanced AI Suggestions', 'Unlimited Projects', 'Choice of Companion', 'Priority Support'],
+      features: ['500 Credits / Month', 'All Writing Tools', '20 Projects', '10 Full Song Generations', 'Melody + Chord Suggestions', 'Choice of AI Co-Writer'],
       buttonText: 'Upgrade',
       priceId: { monthly: 'price_tier1_monthly', annually: 'price_tier1_annually' },
       isPopular: false,
@@ -39,7 +39,7 @@ const Pricing: React.FC<PricingProps> = ({ onBack }) => {
       name: 'Headliner',
       price: { monthly: 24, annually: 240 },
       description: 'For serious songwriters.',
-      features: ['Professional AI Suggestions', 'Version History', 'Export Projects', 'Priority Support' ],
+      features: ['1,500 Credits / Month', 'Advanced AI Tools', '60 Projects', '40 Full- ong Generations', 'Version History', 'Export Projects'],
       buttonText: 'Upgrade',
       priceId: { monthly: 'price_tier2_monthly', annually: 'price_tier2_annually' },
       isPopular: true,
@@ -48,7 +48,7 @@ const Pricing: React.FC<PricingProps> = ({ onBack }) => {
       name: 'Legend',
       price: { monthly: 48, annually: 480 },
       description: 'The ultimate creative suite.',
-      features: ['Premium AI Models', 'Studio Mode', 'AI Demos', 'Early Access to Features', 'Collaborative Tools', 'Personalized Feedback'],
+      features: ['5,000 Credits / Month', 'All Features Unlocked', 'Unlimited Projects', '100 Full Song Generations', 'Studio Mode', 'Collaboration Tool', 'Export Files to DAW'],
       buttonText: 'Upgrade',
       priceId: { monthly: 'price_tier3_monthly', annually: 'price_tier3_annually' },
     },
@@ -152,10 +152,10 @@ const Pricing: React.FC<PricingProps> = ({ onBack }) => {
                 <div className="mb-6 md:mb-8 relative flex items-center">
                   <div className="flex items-baseline">
                     <span className="text-3xl lg:text-4xl font-bold">${tier.price[billingCycle]}</span>
-                    <span className="text-gray-400 text-xs md:text-sm ml-1">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>
+                    <span className="text-gray-400 text-xs md:text-sm ml-2">/{billingCycle === 'monthly' ? 'mo' : 'yr'}</span>
                   </div>
                   {billingCycle === 'annually' && tier.price.monthly * 12 - tier.price.annually > 0 && (
-                    <span className="text-[11px] font-semibold text-[#39FF14] bg-[#39FF14]/10 border border-[#39FF14]/20 px-2 py-0.5 rounded-full ml-2 shadow-[0_0_10px_rgba(57,255,20,0.2)]">
+                    <span className="text-[11px] font-semibold text-green-600 brightness-110 bg-green-400/10 border border-green-400/20 px-2 pt-0.5 pb-1 animate-pulse rounded-full ml-2 ring-md ring-green-400/50">
                       Save ${tier.price.monthly * 12 - tier.price.annually}
                     </span>
                   )}

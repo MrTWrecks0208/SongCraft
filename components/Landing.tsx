@@ -26,17 +26,17 @@ const Landing: React.FC<LandingProps> = ({ onSignInClick, onSignUpClick, onGuest
       </div>
 
       {/* Header */}
-      <header className="relative z-20 flex items-center justify-between px-4 md:px-8 py-4">
+      <header className="relative z-20 flex items-center justify-between px-6 md:px-10 py-4">
         <div className="flex items-center gap-3">
           <div className="relative group flex items-center">
             <img 
               src="/Wordmark.png?v=1.1" 
               alt="Songweaver Wordmark" 
-              className="h-28 md:h-32 object-contain transition-all hover:scale-110" 
+              className="h-36 md:h-42 object-contain transition-all hover:scale-110" 
               onError={(e) => { 
                 e.currentTarget.style.display = 'none'; 
                 const span = document.createElement('span');
-                span.className = "text-3xl md:text-5xl font-bold tracking-tight text-white mb-0.5 animate-pulse bg-gradient-to-r from-pink-500 to-pink-600 bg-clip-text text-transparent";
+                span.className = "text-3xl md:text-5xl font-bold tracking-tight text-white mb-0.5 animate-pulse bg-gradient-to-br from-pink-500 to-pink-600 bg-clip-text text-transparent";
                 span.innerText = "Songweaver";
                 e.currentTarget.parentElement?.appendChild(span);
               }} 
@@ -50,16 +50,16 @@ const Landing: React.FC<LandingProps> = ({ onSignInClick, onSignUpClick, onGuest
       </header>
 
       {/* HERO SECTION */}
-      <main className="relative z-10 flex flex-col items-center pt-12 md:pt-20 pb-20 px-4">
+      <main className="relative z-10 flex flex-col items-center pt-8 md:pt-12 pb-10 px-4">
         <div className="text-center max-w-5xl mx-auto flex flex-col items-center">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="inline-flex items-center gap-2 px-4 py-2 text-pink-500 mb-8 shadow-[0_0_10px_#db2777]"
+            className="inline-flex items-center gap-2 px-4 py-2 text-pink-500 mb-8"
           >
             <SparkleIcon className="w-4 h-4" />
-            <span className="text-sm font-bold uppercase tracking-wider">Meet Your New AI Co-Writer</span>
+            <span className="text-sm font-bold uppercase tracking-wider">Meet Your New AI Songwriting Partner</span>
           </motion.div>
           
           <motion.h1 
@@ -68,7 +68,7 @@ const Landing: React.FC<LandingProps> = ({ onSignInClick, onSignUpClick, onGuest
             transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
             className="text-4xl md:text-5xl lg:text-[72px] leading-[1.1] font-extrabold tracking-tight mb-8 drop-shadow-2xl text-white"
           >
-            Your Songwriting Partner.<br/><span className="text-transparent bg-clip-text bg-gradient-to-br from-pink-500 to-pink-600">Whenever You Need Them.</span>
+            A Songwriting Partner.<br/><span className="text-transparent bg-clip-text bg-gradient-to-br from-pink-500 to-pink-600">Whenever You Need One.</span>
           </motion.h1>
           
           <motion.p 
@@ -77,7 +77,7 @@ const Landing: React.FC<LandingProps> = ({ onSignInClick, onSignUpClick, onGuest
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
             className="text-lg md:text-xl text-gray-400 max-w-2xl mb-12 leading-relaxed shrink-0"
           >
-            Your AI songwriting partner helps you go from a single line to a fully produced song.
+           From first ideas to final polish, Songweaver helps you write, shape, and explore songs without interrupting your creative flow.
           </motion.p>
           
           <motion.div 
@@ -129,7 +129,7 @@ const Landing: React.FC<LandingProps> = ({ onSignInClick, onSignUpClick, onGuest
               </div>
               <div className="absolute right-4 bottom-4 p-3 bg-white/5 rounded-xl border border-white/10 flex items-center gap-2 shadow-lg backdrop-blur-md">
                  <Wand2 className="w-4 h-4 text-pink-600" />
-                 <span className="text-xs font-bold text-gray-300">"Tighten lyrics"</span>
+                 <span className="text-xs font-bold text-gray-300">"Improve lyrics"</span>
               </div>
            </div>
 
@@ -167,11 +167,11 @@ const Landing: React.FC<LandingProps> = ({ onSignInClick, onSignUpClick, onGuest
       <section className="border-t border-b border-white/5 bg-white/[0.02] py-8 text-center relative z-10">
           <p className="text-md md:text-lg font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center justify-center gap-2">
             <IdeaIcon className="w-5 h-5" />
-            <span>Turn ideas into finished tracks.</span>
+            <span>Where ideas become finished tracks</span>
           </p>
          <div className="flex flex-wrap items-center justify-center gap-12 text-gray-500 font-semibold text-lg md:text-xl">
-             <span className="flex items-center gap-2"><PlaylistIcon className="w-5 h-5"/>Over 10,000 songs created</span>
-             <span className="flex items-center gap-2 text-white/40"><Heart className="w-5 h-5"/>Loved by artists from TikTok to Nashville</span>
+             <span className="flex items-center gap-2"><PlaylistIcon className="w-5 h-5"/>More than 10,000 songs created</span>
+             <span className="flex items-center gap-2 text-white/40"><Heart className="w-5 h-5"/>Loved by artists from TikTok all the way to Nashville</span>
          </div>
       </section>
 
@@ -180,7 +180,7 @@ const Landing: React.FC<LandingProps> = ({ onSignInClick, onSignUpClick, onGuest
          <div className="flex flex-col md:flex-row items-center gap-16">
             <div className="flex-1 space-y-8">
                <div className="inline-block px-3 py-1 bg-white/5 rounded-full border border-white/10 text-xs font-bold uppercase tracking-wider text-gray-400">From Idea to Song</div>
-               <h2 className="text-4xl md:text-5xl font-bold tracking-tight leading-tight">Stuck on a line?<br/>We can help!</h2>
+               <h2 className="text-4xl md:text-5xl font-bold tracking-tight leading-tight">Feeling stuck?<br/>We can help!</h2>
                <p className="text-gray-400 text-lg leading-relaxed max-w-lg">
                 Whether you need help starting a song or finishing one, Songweaver's got you covered.
                </p>

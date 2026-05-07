@@ -3,8 +3,6 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import fs from "fs/promises";
 import { fileURLToPath } from "url";
-import Stripe from "stripe";
-import cors from "cors";
 import dotenv from "dotenv";
 import { initializeApp, getApps } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -33,122 +31,6 @@ async function startServer() {
   } catch (error) {
     console.warn("Could not read firebase-applet-config.json - verification might fail if API key is not present.");
   }
-
-  // Initialize Stripe lazily to avoid crash if key is missing
-  let stripe: Stripe | null = null;
-  const getStripe = () => {
-    if (!stripe) {
-      const key = process.env.STRIPE_SECRET_KEY;
-      if (!key) {
-        console.warn("STRIPE_SECRET_KEY is not set. Stripe functionality will be disabled.");
-        return null;
-      }
-      stripe = new Stripe(key);
-    }
-    return stripe;
-  };
-
-  app.use(cors());
-
-  // Stripe Webhook Endpoint (MUST be before express.json() to get raw body)
-  app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-    const stripeClient = getStripe();
-    if (!stripeClient) {
-      return res.status(500).send("Stripe not configured.");
-    }
-
-    const sig = req.headers['stripe-signature'];
-    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-    if (!sig || !endpointSecret) {
-      return res.status(400).send(`Webhook Error: Missing signature or secret`);
-    }
-
-    let event;
-
-    try {
-      event = stripeClient.webhooks.constructEvent(req.body, sig, endpointSecret);
-    } catch (err: any) {
-      console.error(`Webhook Error: ${err.message}`);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
-
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as Stripe.Checkout.Session;
-      console.log('Checkout Completed for session:', session.id);
-      
-      const userId = session.client_reference_id;
-      const stripeCustomerId = session.customer;
-      const subscriptionId = session.subscription;
-      const tier = session.metadata?.tier || 'Free';
-
-      if (userId) {
-        try {
-          await db.collection("users").doc(userId).set({
-            stripe_customer_id: stripeCustomerId,
-            subscription_id: subscriptionId,
-            subscription_status: 'active',
-            tier: tier
-          }, { merge: true });
-          console.log(`Successfully updated membership status for user ${userId}`);
-        } catch (error) {
-          console.error(`Failed to update DB for user ${userId}`, error);
-        }
-      } else {
-        console.warn("No client_reference_id (userId) found in session. Unable to link subscription to user.");
-      }
-    }
-
-    if (event.type === 'invoice.payment_failed') {
-      const invoice = event.data.object as Stripe.Invoice;
-      console.log('Payment Failed for invoice:', invoice.id);
-      
-      const stripeCustomerId = invoice.customer as string;
-      if (stripeCustomerId) {
-        try {
-          // Look up user by customer ID
-          const usersSnapshot = await db.collection("users")
-            .where("stripe_customer_id", "==", stripeCustomerId)
-            .get();
-          
-          if (!usersSnapshot.empty) {
-            const userDoc = usersSnapshot.docs[0];
-            await userDoc.ref.update({
-              subscription_status: 'past_due'
-            });
-            console.log(`Set subscription_status to past_due for user ${userDoc.id}`);
-          }
-        } catch (error) {
-          console.error(`Failed to record payment failure for customer ${stripeCustomerId}`, error);
-        }
-      }
-    }
-
-    if (event.type === 'customer.subscription.deleted') {
-      const subscription = event.data.object as Stripe.Subscription;
-      const stripeCustomerId = subscription.customer as string;
-
-      if (stripeCustomerId) {
-        try {
-          const usersSnapshot = await db.collection("users")
-            .where("stripe_customer_id", "==", stripeCustomerId)
-            .get();
-          
-          if (!usersSnapshot.empty) {
-            const userDoc = usersSnapshot.docs[0];
-            await userDoc.ref.update({
-              subscription_status: 'canceled'
-            });
-            console.log(`Set subscription_status to canceled for user ${userDoc.id}`);
-          }
-        } catch (error) {
-          console.error(`Failed to record cancellation for customer ${stripeCustomerId}`, error);
-        }
-      }
-    }
-
-    res.sendStatus(200);
-  });
 
   app.use(express.json());
 
@@ -238,42 +120,6 @@ async function startServer() {
   // API Routes
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
-  });
-
-  app.post('/create-checkout-session', async (req, res) => {
-    const { userId, priceId, tierName } = req.body;
-    const stripe = getStripe();
-    if (!stripe) {
-      return res.status(500).json({ error: "Stripe is not configured." });
-    }
-
-    if (!priceId) {
-      return res.status(400).json({ error: "Missing priceId." });
-    }
-
-    try {
-      const session = await stripe.checkout.sessions.create({
-        mode: 'subscription',
-        payment_method_types: ['card'],
-        client_reference_id: userId, // Pass the Firebase user ID so the webhook can find it
-        line_items: [
-          {
-            price: priceId, // use the dynamic price ID
-            quantity: 1,
-          },
-        ],
-        metadata: {
-          tier: tierName || 'Pro'
-        },
-        success_url: `${process.env.APP_URL || 'http://localhost:3000'}/?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.APP_URL || 'http://localhost:3000'}/pricing`,
-      });
-
-      res.json({ url: session.url });
-    } catch (error: any) {
-      console.error("Error creating checkout session:", error);
-      res.status(500).json({ error: error.message });
-    }
   });
 
   // Vite middleware for development

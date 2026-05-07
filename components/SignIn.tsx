@@ -200,8 +200,8 @@ const SignIn: React.FC<SignInProps> = ({ onStart, initialIsSignUp = false, onBac
         </button>
         
         <div className="text-center mb-8 pt-4">
-          <div className="w-12 h-12 rounded-full bg-accent/20 mx-auto flex items-center justify-center mb-4 border border-accent/20">
-            <SparkleIcon className="w-6 h-6 text-accent" />
+          <div className="flex items-center justify-center mb-6">
+            <img src="/Wordmark.png?v=1.1" alt="Songweaver Wordmark" className="h-12 object-contain" />
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">
             {isSignUp ? 'Create an Account' : 'Welcome Back'}

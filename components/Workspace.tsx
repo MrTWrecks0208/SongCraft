@@ -4,7 +4,7 @@ import { ref, uploadString, uploadBytes, getDownloadURL } from 'firebase/storage
 import { db, auth, storage } from '../firebase';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { SuggestionType, Companion, ChatMessage, Project, AudioClip, ProjectVersion, SUGGESTION_COSTS, getEffectiveSuggestionCost } from '../types';
+import { SuggestionType, Companion, ChatMessage, Project, AudioClip, ProjectVersion } from '../types';
 import { getAiSuggestion, getRhymes } from '../services/geminiService';
 import { GoogleGenAI, Chat } from "@google/genai";
 import { motion } from 'motion/react';
@@ -29,24 +29,19 @@ import { History as HistoryIcon } from 'lucide-react';
 import { Sparkles as SparklesIcon } from 'lucide-react';
 
 import { handleFirestoreError, OperationType } from '../services/firestoreUtils';
-import { useSubscription } from '../hooks/useSubscription';
-import { useUserCredits } from '../hooks/useUserCredits';
 import { Zap } from 'lucide-react';
 
 interface WorkspaceProps {
     projectId: string;
     ownerId?: string;
     onBack: () => void;
-    onGoToPricing: () => void;
 }
 
 let isStorageAvailable = true;
 
-const Workspace: React.FC<WorkspaceProps> = ({ projectId, ownerId, onBack, onGoToPricing }) => {
+const Workspace: React.FC<WorkspaceProps> = ({ projectId, ownerId, onBack }) => {
     const defaultOwnerId = ownerId || auth.currentUser?.uid || '';
     const isOwner = defaultOwnerId === auth.currentUser?.uid;
-    const subscription = useSubscription();
-    const { credits } = useUserCredits(auth.currentUser?.uid);
     // Project Metadata
     const [projectTitle, setProjectTitle] = useState('Untitled Song');
     const [isShared, setIsShared] = useState(false);
@@ -328,37 +323,12 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, ownerId, onBack, onGoT
             return;
         }
         
-        const successDeduction = await deductCredits(SuggestionType.RHYMES);
-        if (!successDeduction) return;
-
         setRhymeState({ isOpen: true, word: lastWord, rhymes: [], isLoading: true, error: null });
         try {
             const rhymes = await getRhymes(lastWord);
             setRhymeState(prev => ({ ...prev, rhymes, isLoading: false }));
         } catch (e: any) {
             setRhymeState(prev => ({...prev, error: e.message, isLoading: false }));
-        }
-    };
-
-    const deductCredits = async (type: SuggestionType): Promise<boolean> => {
-        if (!auth.currentUser) return false;
-        const cost = getEffectiveSuggestionCost(type, subscription.tier);
-        if (cost === 0) return true; // It's free!
-
-        // Grace buffer logic: Allow going slightly into negative
-        if (credits !== null && credits - cost < -3) {
-            setSuggestionError("You're on a roll! We've pushed past our creative limits for this session. Let's add some more sparks to keep the momentum going.");
-            return false;
-        }
-
-        try {
-            const userRef = doc(db, 'users', auth.currentUser.uid);
-            await updateDoc(userRef, { credits: increment(-cost) });
-            return true;
-        } catch (e) {
-            console.error("Failed to deduct credits:", e);
-            setSuggestionError('Failed to deduct credits. Please try again.');
-            return false;
         }
     };
 
@@ -390,12 +360,6 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, ownerId, onBack, onGoT
             } catch (e) {
                 console.error("Error checking/requesting API key:", e);
             }
-        }
-
-        const successDeduction = await deductCredits(actionType);
-        if (!successDeduction) {
-            setIsSongGenerating(false);
-            return;
         }
 
         try {
@@ -499,12 +463,6 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, ownerId, onBack, onGoT
         if (!sourceClip) {
             setStemSplitterState(prev => ({ ...prev, isOpen: false }));
             setSuggestionError('Original audio clip not found.');
-            return;
-        }
-
-        const successDeduction = await deductCredits(SuggestionType.STEM_SPLITTER);
-        if (!successDeduction) {
-            setStemSplitterState(prev => ({ ...prev, isOpen: false }));
             return;
         }
 
@@ -670,12 +628,6 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, ownerId, onBack, onGoT
         const effectiveStyle = effectiveStyleName || (type === SuggestionType.STYLE_MIMIC ? selectedMusician : (type === SuggestionType.TONE_SWITCHER ? selectedTone : undefined));
         const effectiveStyleType = styleType || (type === SuggestionType.STYLE_MIMIC ? selectedStyleType : undefined);
         
-        const successDeduction = await deductCredits(type);
-        if (!successDeduction) {
-            setIsSuggestionLoading(false);
-            return;
-        }
-
         const result = await getAiSuggestion(lyrics, type, currentFeedback, companion.systemInstruction, effectiveStyle, effectiveStyleType);
         
         if (result.text.toLowerCase().includes('error occurred')) {
@@ -802,7 +754,6 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, ownerId, onBack, onGoT
                             onSuggestionSelect={handleSuggestionRequest} 
                             isLoading={isSuggestionLoading || isSongGenerating} 
                             selectedType={activeSuggestionType}
-                            onGoToPricing={onGoToPricing}
                         />
                         <SuggestionDisplay 
                             suggestion={suggestion} 
@@ -853,11 +804,6 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, ownerId, onBack, onGoT
 
     const handleShareClick = async () => {
         if (!isOwner) return;
-        if (subscription.tier !== 'Legend') {
-           setSuggestionError('Collaboration requires the Legend tier. Please upgrade.');
-           onGoToPricing();
-           return;
-        }
         setIsShareModalOpen(true);
         if (!isShared) {
             try {
@@ -891,7 +837,6 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, ownerId, onBack, onGoT
                     selectedCompanion={companion}
                     onSelect={handleCompanionSelect}
                     onClose={() => setIsCompanionSelectorOpen(false)}
-                    onGoToPricing={onGoToPricing}
                 />
             )}
             {rhymeState.isOpen && (
@@ -1209,7 +1154,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, ownerId, onBack, onGoT
                          <button onClick={handleBack} className="p-2 rounded-full hover:bg-white/10 transition-colors flex-shrink-0" aria-label="Go back">
                             <BackArrowIcon className="w-6 h-6 text-gray-300"/>
                         </button>
-                        <img src="/logo.png" alt="Songweaver Logo" className="w-8 h-8 object-contain mr-2 hidden sm:block" onError={(e) => e.currentTarget.style.display = 'none'} />
+                        <img src="/Wordmark.png?v=1.1" alt="Songweaver Logo" className="h-8 object-contain mr-2 hidden sm:block" onError={(e) => e.currentTarget.style.display = 'none'} />
                         <input 
                             value={projectTitle}
                             onChange={(e) => setProjectTitle(e.target.value)}
@@ -1218,13 +1163,6 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, ownerId, onBack, onGoT
                         />
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0 md:hidden">
-                        {credits !== null && (
-                            <div className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-full flex items-center gap-1.5 text-xs font-bold text-gray-300">
-                                <Zap className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500/20" />
-                                <span>{credits}</span>
-                                <span className="hidden sm:inline">Credits</span>
-                            </div>
-                        )}
                         {auth.currentUser?.isAnonymous && (
                             <div className="px-2 sm:px-3 py-1 bg-pink-500/20 border border-pink-500/30 rounded-full flex items-center gap-2 flex-shrink-0">
                                 <div className="w-2 h-2 rounded-full bg-pink-500 animate-pulse shrink-0" />

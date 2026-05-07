@@ -6,11 +6,10 @@ import SignIn from './components/SignIn';
 import Landing from './components/Landing';
 import Workspace from './components/Workspace';
 import ProjectList from './components/ProjectList';
-import Pricing from './components/Pricing';
 import Settings from './components/Settings';
 import Sidebar from './components/Sidebar';
 
-type View = 'landing' | 'signin' | 'projects' | 'workspace' | 'pricing' | 'settings';
+type View = 'landing' | 'signin' | 'projects' | 'workspace' | 'settings';
 
 function App() {
   const [view, setView] = useState<View>('landing');
@@ -105,10 +104,6 @@ function App() {
     setView('projects');
   }, []);
 
-  const handleGoToPricing = useCallback(() => {
-    setView('pricing');
-  }, []);
-
   const handleGoToSettings = useCallback(() => {
     setView('settings');
   }, []);
@@ -155,12 +150,11 @@ function App() {
           </div>
         )}
         {view === 'projects' && user && (
-          <ProjectList onSelectProject={handleSelectProject} onGoToPricing={handleGoToPricing} onGoToSettings={handleGoToSettings} />
+          <ProjectList onSelectProject={handleSelectProject} onGoToSettings={handleGoToSettings} />
         )}
-        {view === 'pricing' && user && <Pricing onBack={handleBackToProjects} />}
-        {view === 'settings' && user && <Settings onBack={handleBackToProjects} onGoToPricing={handleGoToPricing} />}
+        {view === 'settings' && user && <Settings onBack={handleBackToProjects} />}
         {view === 'workspace' && currentProjectId && user && (
-           <Workspace projectId={currentProjectId} ownerId={currentProjectOwnerId || user.uid} onBack={handleBackToProjects} onGoToPricing={handleGoToPricing} />
+           <Workspace projectId={currentProjectId} ownerId={currentProjectOwnerId || user.uid} onBack={handleBackToProjects} />
         )}
       </div>
     </div>

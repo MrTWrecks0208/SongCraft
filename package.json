@@ -1,5 +1,5 @@
 {
-  "name": "ai-songwriting-partner",
+  "name": "songweaver",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -30,7 +30,6 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
-    "stripe": "^21.0.1",
     "tsx": "^4.21.0"
   },
   "devDependencies": {

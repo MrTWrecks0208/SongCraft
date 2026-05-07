@@ -6,24 +6,18 @@ import { db, auth } from '../firebase';
 import { Project } from '../types';
 import { companions } from '../companions';
 import { TrashIcon } from './icons/TrashIcon';
-import { User as UserIcon, Settings as SettingsIcon, LogOut, ChevronDown, CreditCard, Zap, Plus, Music } from 'lucide-react';
+import { User as UserIcon, Settings as SettingsIcon, LogOut, ChevronDown, Plus, Music } from 'lucide-react';
 import { handleFirestoreError, OperationType } from '../services/firestoreUtils';
-
-import { useSubscription } from '../hooks/useSubscription';
-import { useUserCredits } from '../hooks/useUserCredits';
 
 interface ProjectListProps {
   onSelectProject: (projectId: string) => void;
-  onGoToPricing: () => void;
   onGoToSettings: () => void;
 }
 
-const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricing, onGoToSettings }) => {
+const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToSettings }) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const subscription = useSubscription();
-  const { credits } = useUserCredits(auth.currentUser?.uid);
 
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -75,11 +69,6 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricin
 
   const handleCreateProject = async () => {
     if (!auth.currentUser) return;
-
-    if (subscription.status !== 'active' && projects.length >= 3) {
-      onGoToPricing();
-      return;
-    }
 
     const path = `users/${auth.currentUser.uid}/projects`;
     const newProjectData = {
@@ -139,8 +128,9 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricin
     <div className="w-full p-6 sm:p-8 min-h-screen">
       <div className="flex flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-2 sm:gap-4">
         <div className="text-left">
-          <div className="flex items-center gap-2 sm:gap-3 justify-start mb-1 sm:mb-2">
-            <img src="/logo.png" alt="Songweaver Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
+          <div className="flex items-center gap-2 sm:gap-4 justify-start mb-1 sm:mb-2">
+            <img src="/Wordmark.png?v=1.1" alt="Songweaver Logo" className="h-8 sm:h-12 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
+            <div className="w-px h-6 sm:h-8 bg-white/10 mx-1 sm:mx-2" />
             <h1 className="text-xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-accent-light to-accent leading-tight">
               Your Projects
             </h1>
@@ -149,13 +139,6 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricin
         </div>
         
         <div className="relative flex items-center gap-2 sm:gap-4 shrink-0 mt-1 sm:mt-0 md:hidden">
-          {credits !== null && (
-            <div className={`px-3 py-1.5 bg-white/5 border border-white/10 rounded-full flex items-center gap-1.5 text-xs font-bold transition-colors ${credits > 10 ? 'text-gray-200' : 'text-gray-400'}`}>
-              <Zap className={`w-3.5 h-3.5 shrink-0 ${credits > 10 ? 'text-accent drop-shadow-[0_0_8px_rgba(219,39,119,0.5)]' : 'text-gray-500'}`} />
-              <span>{credits}</span>
-              <span className="hidden sm:inline">Sparks</span>
-            </div>
-          )}
           {auth.currentUser?.isAnonymous && (
             <div className="px-2 sm:px-3 py-1 bg-accent/20 border border-accent/30 rounded-full flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-accent animate-pulse shrink-0" />
@@ -208,16 +191,6 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricin
                       <SettingsIcon className="w-4 h-4" />
                       Settings
                     </button>
-                    <button
-                      onClick={() => {
-                        setIsUserMenuOpen(false);
-                        onGoToPricing();
-                      }}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-all"
-                    >
-                      <CreditCard className="w-4 h-4" />
-                      Pricing
-                    </button>
                     <div className="h-px bg-white/5 my-2" />
                     <button
                       onClick={handleSignOut}
@@ -244,7 +217,7 @@ const ProjectList: React.FC<ProjectListProps> = ({ onSelectProject, onGoToPricin
         >
           <div className="absolute inset-0 backdrop-blur-md pointer-events-none -z-10" />
           <div className="py-3 px-4 rounded-xl mb-3 group-hover:scale-110 transition-transform relative flex items-center justify-center">
-            <img src="/logo.png" alt="Songweaver Logo" className="w-10 h-10 object-contain opacity-50 absolute inset-0 m-auto mix-blend-screen -z-10 blur-sm" onError={(e) => e.currentTarget.style.display = 'none'} />
+            <img src="/Wordmark.png?v=1.1" alt="Songweaver Logo" className="w-20 h-20 object-contain opacity-50 absolute inset-0 m-auto mix-blend-screen -z-10 blur-md" onError={(e) => e.currentTarget.style.display = 'none'} />
             <div className="bg-gradient-to-br from-accent-light to-accent w-12 h-12 flex items-center justify-center rounded-xl shadow-lg shadow-accent/20 relative z-10">
               <Plus className="w-6 h-6 text-white relative z-10" />
             </div>

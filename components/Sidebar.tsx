@@ -1,14 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { LayoutGrid, Settings, CreditCard, LogOut, ChevronLeft, ChevronRight, User as UserIcon } from 'lucide-react';
+import { LayoutGrid, Settings, LogOut, ChevronLeft, ChevronRight, User as UserIcon } from 'lucide-react';
 import { User, signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { useUserCredits } from '../hooks/useUserCredits';
-import { useSubscription } from '../hooks/useSubscription';
 
 interface SidebarProps {
   currentView: string;
-  setView: (view: 'projects' | 'settings' | 'pricing' | 'workspace' | string) => void;
-  user: User;
+  setView: (view: 'projects' | 'settings' | 'workspace' | string) => void;
+  user: User | null;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, user }) => {
@@ -16,9 +14,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, user }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   
-  const { credits, loading: creditsLoading } = useUserCredits(user?.uid);
-  const subscription = useSubscription();
-
   const handleSignOut = () => {
     signOut(auth);
   };
@@ -48,9 +43,21 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, user }) => {
       </button>
 
       <div className={`p-6 flex items-center ${isCollapsed ? 'justify-center' : 'justify-start'}`}>
-        <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="Songweaver Logo" className="w-8 h-8 object-contain shrink-0" onError={(e) => e.currentTarget.style.display = 'none'} />
-          {!isCollapsed && <span className="text-xl font-bold tracking-tight text-white truncate">Songweaver</span>}
+        <div className="flex items-center">
+          <img 
+            src="/Wordmark.png?v=1.1" 
+            alt="Songweaver Logo" 
+            className={`${isCollapsed ? 'w-10 h-10 object-contain' : 'h-10 object-contain'}`} 
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+              if (!isCollapsed) {
+                const span = document.createElement('span');
+                span.className = "text-xl font-bold tracking-tight text-white truncate animate-pulse";
+                span.innerText = "Songweaver";
+                e.currentTarget.parentElement?.appendChild(span);
+              }
+            }} 
+          />
         </div>
       </div>
 
@@ -65,7 +72,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, user }) => {
               title={isCollapsed ? item.label : undefined}
               className={`flex items-center gap-3 py-3 text-lg tracking-wide font-medium transition-all ${
                 isActive
-                  ? 'text-pink-300'
+                  ? 'text-pink-600'
                   : 'text-gray-400 hover:text-pink-400'
               } ${isCollapsed ? 'px-0 justify-center w-12 mx-auto' : 'px-4 w-full'}`}
             >
@@ -90,17 +97,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, user }) => {
                 <Settings className="w-4 h-4 shrink-0" />
                 <span>Settings</span>
               </button>
-              <button
-                onClick={() => {
-                  setView('pricing');
-                  setIsMenuOpen(false);
-                }}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors text-left"
-              >
-                <CreditCard className="w-4 h-4 shrink-0" />
-                <span>Subscription</span>
-              </button>
-              <div className="h-px bg-white/5 my-1" />
               <button
                 onClick={() => {
                   handleSignOut();
@@ -134,38 +130,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, user }) => {
                  <span className="text-sm font-semibold truncate text-white leading-tight">
                     {user?.isAnonymous ? 'Guest Artist' : user?.email}
                  </span>
-                 
-                 {!isCollapsed && (
-                   <div className="w-full mt-1.5 pointer-events-none">
-                     <div className="w-full overflow-hidden flex flex-col gap-1">
-                       <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                         <div 
-                           className="h-full bg-gradient-to-r from-accent to-accent-light rounded-full transition-all duration-500 ease-out" 
-                           style={{ 
-                             width: `${Math.min(100, Math.max(0, ((credits ?? 0) / (() => {
-                               switch (subscription.tier) {
-                                 case 'Rising Artist': return 500;
-                                 case 'Headliner': return 1500;
-                                 case 'Legend': return 5000;
-                                 default: return 60;
-                               }
-                             })()) * 100))}%` 
-                           }} 
-                         />
-                       </div>
-                       <div className="flex justify-between items-center w-full">
-                         <span className="text-[10px] text-gray-400 font-medium text-left">{credits ?? 0} / {(() => {
-                             switch (subscription.tier) {
-                               case 'Rising Artist': return 500;
-                               case 'Headliner': return 1500;
-                               case 'Legend': return 5000;
-                               default: return 60;
-                             }
-                           })()} credits</span>
-                       </div>
-                     </div>
-                   </div>
-                 )}
               </div>
             )}
           </button>

@@ -5,6 +5,7 @@ import { LightbulbIcon } from './icons/LightbulbIcon';
 import { PaperAirplaneIcon } from './icons/PaperAirplaneIcon';
 import { ClearIcon } from './icons/ClearIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { RefreshCcw } from 'lucide-react';
 
 interface SuggestionDisplayProps {
   suggestion: string;
@@ -88,7 +89,7 @@ const SuggestionDisplay: React.FC<SuggestionDisplayProps> = ({
                     aria-label="Clear Suggestion"
                     onBlur={() => setIsConfirmingClear(false)}
                 >
-                    <TrashIcon className="w-4 h-4" />
+                    <RefreshCcw className="w-4 h-4" />
                     {isConfirmingClear && (
                         <span className="text-red-400 text-xs font-medium pl-2">Clear Suggestion?</span>
                     )}

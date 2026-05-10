@@ -61,12 +61,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, user }) => {
         {isCollapsed ? <ChevronRight className="w-4 h-4 ml-0.5" /> : <ChevronLeft className="w-4 h-4 mr-0.5" />}
       </button>
 
-      <div className="p-4 flex items-center justify-center">
+      <div className="p-6 flex items-center justify-center">
         <div className="flex items-center justify-center w-full">
           <img 
             src={isCollapsed ? "/Logo.png" : "/Wordmark.png?v=1.1"} 
             alt="Songweaver Logo" 
-            className={`${isCollapsed ? 'w-20 h-20' : 'h-20 w-full'} object-contain transition-all duration-300`} 
+            className={`${isCollapsed ? 'w-12 h-12' : 'h-16 w-full'} object-contain transition-all duration-300`} 
             onError={(e) => {
               e.currentTarget.style.display = 'none';
               if (!isCollapsed) {

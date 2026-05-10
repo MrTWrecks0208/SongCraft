@@ -61,14 +61,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, ownerId, onBack }) => 
     const [isLoaded, setIsLoaded] = useState(false);
 
     // View state
-    const [activeTab, setActiveTab] = useState<'editor' | 'chat' | 'recordings' | 'history'>(auth.currentUser?.uid === defaultOwnerId ? 'editor' : 'recordings');
-    
-    // Auto-switch to recordings tab if this is a shared project and user is not the owner
-    useEffect(() => {
-        if (!isOwner && activeTab !== 'recordings') {
-            setActiveTab('recordings');
-        }
-    }, [isOwner]);
+    const [activeTab, setActiveTab] = useState<'editor' | 'chat' | 'recordings' | 'history'>('editor');
     
     // Companion and chat state
     const [companion, setCompanion] = useState<Companion>(companions[0]);
@@ -790,19 +783,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, ownerId, onBack }) => 
                     <div className="flex flex-col gap-6">
                         <AudioRecorder onRecordingComplete={handleRecordingComplete} />
                         <div className="flex flex-col gap-4">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-xl font-bold text-gray-300">Project Recordings</h2>
-                                {isOwner && (
-                                    <button 
-                                        onClick={handleShareClick} 
-                                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:text-sky-400 transition-colors text-gray-400 text-xs font-bold"
-                                        title="Share Recordings"
-                                    >
-                                        <Share2 className="w-4 h-4" />
-                                        <span>Share Recordings</span>
-                                    </button>
-                                )}
-                            </div>
+                            <h2 className="text-xl font-bold text-gray-300">Project Recordings</h2>
                             <AudioClipList clips={audioClips} onDelete={handleDeleteClip} />
                         </div>
                     </div>
@@ -1190,8 +1171,13 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, ownerId, onBack }) => 
                         )}
                     </div>
                     <button onClick={() => setIsCompanionSelectorOpen(true)} className="p-0 transition-colors flex-shrink-0 text-yellow-500 hover:text-yellow-400 active:text-yellow-600 relative overflow-hidden w-6 h-6 flex items-center justify-center group" aria-label="Change companion" title="Change AI Companion">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bot-message-square-icon lucide-bot-message-square"><path d="M12 6V2H8"/><path d="M15 11v2"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M20 16a2 2 0 0 1-2 2H8.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 4 20.286V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/><path d="M9 11v2"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bot-message-square-icon lucide-bot-message-square"><path d="M12 6V2H8"/><path d="M15 11v2"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M20 16a2 2 0 0 1-2 2H8.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 4 20.286V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/><path d="M9 11v2"/></svg>
                     </button>
+                    {isOwner && (
+                        <button onClick={handleShareClick} className="p-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors flex-shrink-0 text-pink-500 hover:text-pink-400 flex items-center justify-center group" aria-label="Share project" title="Share Project">
+                            <Share2 className="w-4 h-4" />
+                        </button>
+                    )}
                 </div>
                 
                 {isShareModalOpen && (
@@ -1201,8 +1187,8 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, ownerId, onBack }) => 
                             animate={{ opacity: 1, scale: 1 }}
                             className="bg-[#1d2951] border border-white/10 rounded-3xl p-8 w-full max-w-md shadow-2xl"
                         >
-                            <h2 className="text-2xl font-bold text-white mb-2">Share Recordings</h2>
-                            <p className="text-sm text-gray-300 mb-6">Anyone with this link will be able to listen to and collaborate on these recordings.</p>
+                            <h2 className="text-2xl font-bold text-white mb-2">Share Project</h2>
+                            <p className="text-sm text-gray-300 mb-6">Anyone with this link will be able to collaborate on this project.</p>
                             
                             <div className="flex gap-2">
                                 <input 
@@ -1230,16 +1216,14 @@ const Workspace: React.FC<WorkspaceProps> = ({ projectId, ownerId, onBack }) => 
                     </div>
                 )}
                 
-                {isOwner && (
-                    <div className="flex justify-center">
-                        <div className="bg-white/5 p-1 rounded-full flex items-center gap-1">
-                            <TabButton icon={<PencilIcon className="w-5 h-5"/>} text="Editor" isActive={activeTab === 'editor'} onClick={() => setActiveTab('editor')} activeColorClass="text-sky-500" activeBorderClass="border-sky-500 border-2" inactiveColorClass="hover:text-sky-500" />
-                            <TabButton icon={<ChatBubbleIcon className="w-5 h-5"/>} text="Chat" isActive={activeTab === 'chat'} onClick={() => setActiveTab('chat')} activeColorClass="text-yellow-500" activeBorderClass="border-yellow-500 border-2" inactiveColorClass="hover:text-yellow-500" />
-                            <TabButton icon={<RecordIcon className="w-5 h-5"/>} text="Recordings" isActive={activeTab === 'recordings'} onClick={() => setActiveTab('recordings')} activeColorClass="text-red-500" activeBorderClass="border-red-500 border-2" inactiveColorClass="hover:text-red-500" />
-                            <TabButton icon={<HistoryIcon className="w-5 h-5"/>} text="History" isActive={activeTab === 'history'} onClick={() => setActiveTab('history')} activeColorClass="text-emerald-500" activeBorderClass="border-emerald-500 border-2" inactiveColorClass="hover:text-emerald-500" />
-                        </div>
+                <div className="flex justify-center">
+                    <div className="bg-white/5 p-1 rounded-full flex items-center gap-1">
+                        <TabButton icon={<PencilIcon className="w-5 h-5"/>} text="Editor" isActive={activeTab === 'editor'} onClick={() => setActiveTab('editor')} activeColorClass="text-sky-500" activeBorderClass="border-sky-500 border-2" inactiveColorClass="hover:text-sky-500" />
+                        <TabButton icon={<ChatBubbleIcon className="w-5 h-5"/>} text="Chat" isActive={activeTab === 'chat'} onClick={() => setActiveTab('chat')} activeColorClass="text-yellow-500" activeBorderClass="border-yellow-500 border-2" inactiveColorClass="hover:text-yellow-500" />
+                        <TabButton icon={<RecordIcon className="w-5 h-5"/>} text="Recordings" isActive={activeTab === 'recordings'} onClick={() => setActiveTab('recordings')} activeColorClass="text-red-500" activeBorderClass="border-red-500 border-2" inactiveColorClass="hover:text-red-500" />
+                        <TabButton icon={<HistoryIcon className="w-5 h-5"/>} text="History" isActive={activeTab === 'history'} onClick={() => setActiveTab('history')} activeColorClass="text-emerald-500" activeBorderClass="border-emerald-500 border-2" inactiveColorClass="hover:text-emerald-500" />
                     </div>
-                )}
+                </div>
             </header>
             
             <main className="w-full flex flex-col gap-6">
